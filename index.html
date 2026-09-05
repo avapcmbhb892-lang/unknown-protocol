@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050509">
+<title>UNKNOWN PROTOCOL 4.0</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#050509;color:#eee;font-family:Arial,sans-serif}
+body{overflow-x:hidden}
+button,input{font:inherit}
+button{cursor:pointer}
+#canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.scan{position:fixed;inset:0;pointer-events:none;z-index:5;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0,rgba(255,255,255,.015) 1px,transparent 1px,transparent 4px)}
+.app{position:relative;z-index:2;max-width:950px;margin:auto;padding:18px}
+.panel{background:rgba(10,10,18,.88);border:1px solid #29293b;border-radius:22px;box-shadow:0 0 40px rgba(100,0,255,.12);backdrop-filter:blur(12px)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.logo{font-weight:900;letter-spacing:4px;font-size:20px;color:#a970ff;text-shadow:0 0 15px #7c2cff;user-select:none}
+.status{font-size:11px;color:#777}
+h1{font-size:clamp(30px,7vw,65px);margin:8px 0;background:linear-gradient(90deg,#fff,#9d55ff,#ff3ca6);-webkit-background-clip:text;color:transparent}
+h2{margin-top:0}
+p{color:#aaa;line-height:1.55}
+.screen{display:none}
+.screen.active{display:block}
+.card{padding:25px}
+.btn{border:1px solid #57339a;background:#171020;color:#fff;padding:13px 17px;border-radius:13px;transition:.15s;margin:4px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 0 20px #6b22ff55;border-color:#a970ff}
+.btn.main{background:linear-gradient(135deg,#6626bd,#b21b72);border:0}
+.btn.danger{border-color:#8c243e;color:#ff6688}
+.btn.green{border-color:#277d61;color:#63ffbf}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.stat{padding:16px;border:1px solid #252538;border-radius:15px;background:#0b0b13}
+.big{font-size:28px;font-weight:900}
+.muted{color:#777;font-size:13px}
+.progress{height:8px;background:#151520;border-radius:99px;overflow:hidden;margin:12px 0}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7a35ff,#ff3ca6);transition:.3s}
+.q{font-size:23px;font-weight:800;margin:22px 0}
+.answers{display:grid;gap:10px}
+.answer{text-align:left;padding:15px;border-radius:14px;border:1px solid #29293b;background:#10101a;color:#fff}
+.answer:hover{border-color:#965aff;background:#171124}
+.answer.good{border-color:#24d997;background:#08291e}
+.answer.bad{border-color:#ff416c;background:#2a0b15}
+.meme{font-size:18px;border-left:3px solid #a970ff;padding:13px 16px;background:#0b0b13;border-radius:10px;margin:15px 0;color:#ddd}
+.badge{display:inline-block;padding:7px 10px;border-radius:99px;background:#141421;border:1px solid #313147;font-size:12px;margin:4px}
+.lock{opacity:.35}
+.toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%) translateY(100px);background:#11111b;border:1px solid #6636a8;padding:14px 18px;border-radius:14px;z-index:20;transition:.3s;box-shadow:0 0 25px #000}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;background:#000b;z-index:15;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modalbox{max-width:600px;width:100%;padding:28px}
+input{width:100%;padding:14px;border-radius:12px;border:1px solid #333;background:#08080d;color:#fff;outline:none}
+#boot{position:fixed;inset:0;z-index:30;background:#020204;display:flex;align-items:center;justify-content:center;padding:20px}
+.bootbox{width:min(650px,100%);font-family:monospace;color:#7cffc4}
+.bootline{margin:7px 0}
+.glitch{animation:glitch .15s infinite}
+@keyframes glitch{0%{transform:translate(0)}33%{transform:translate(2px,-1px)}66%{transform:translate(-2px,1px)}100%{transform:translate(0)}}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+@media(max-width:600px){.app{padding:10px}.card{padding:18px}.top{align-items:flex-start}.q{font-size:19px}}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<div class="scan"></div>
+
+<div id="boot">
+  <div class="bootbox">
+    <div class="bootline">> INITIALIZING UNKNOWN PROTOCOL...</div>
+    <div class="bootline">> loading meme_database.db...</div>
+    <div class="bootline">> loading easter_eggs.exe...</div>
+    <div class="bootline">> searching for normal people...</div>
+    <div class="bootline">> ERROR: NORMAL PEOPLE NOT FOUND</div>
+    <div class="bootline">> ACCESS GRANTED.</div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="top">
+    <div class="logo" id="logo">UNKNOWN // 4.0</div>
+    <div class="status" id="status">SYSTEM ONLINE</div>
+  </div>
+
+  <section id="menu" class="screen active panel card">
+    <div class="muted">CLASSIFIED SYSTEM</div>
+    <h1>UNKNOWN<br>PROTOCOL</h1>
+    <p id="hello">Ты вошёл в систему. Здесь всё нормально.</p>
+
+    <div class="meme" id="randomMeme">
+      «Я просто посмотрю одну минуту» — человек, который провёл здесь 3 часа.
+    </div>
+
+    <div>
+      <button class="btn main" onclick="startGame()">▶ НАЧАТЬ ПРОТОКОЛ</button>
+      <button class="btn" onclick="show('profile')">👤 ПРОФИЛЬ</button>
+      <button class="btn" onclick="show('archive')">📁 АРХИВ</button>
+      <button class="btn" onclick="show('achievements')">🏆 ДОСТИЖЕНИЯ</button>
+      <button class="btn" onclick="show('secrets')">🔐 СЕКРЕТЫ</button>
+      <button class="btn" onclick="show('stats')">📊 СТАТИСТИКА</button>
+    </div>
+
+    <div style="margin-top:18px">
+      <span class="badge">LVL <b id="menuLvl">1</b></span>
+      <span class="badge">XP <b id="menuXP">0</b></span>
+      <span class="badge">🔥 COMBO <b id="menuCombo">0</b></span>
+    </div>
+  </section>
+
+  <section id="profile" class="screen panel card">
+    <h2>👤 Профиль</h2>
+    <div class="grid">
+      <div class="stat"><div class="muted">Имя</div><div class="big" id="profileName">UNKNOWN</div></div>
+      <div class="stat"><div class="muted">Уровень</div><div class="big" id="profileLevel">1</div></div>
+      <div class="stat"><div class="muted">XP</div><div class="big" id="profileXP">0</div></div>
+      <div class="stat"><div class="muted">Титул</div><div class="big" id="profileTitle">НОВИЧОК</div></div>
+    </div>
+    <p>ID игрока: <code id="playerID"></code></p>
+    <input id="nameInput" placeholder="Введи имя">
+    <button class="btn main" onclick="saveName()">СОХРАНИТЬ</button>
+    <button class="btn" onclick="show('menu')">← НАЗАД</button>
+  </section>
+
+  <section id="archive" class="screen panel card">
+    <h2>📁 UNKNOWN ARCHIVE</h2>
+    <div class="grid">
+      <div class="stat"><b>FILE_001</b><p>Первый пользователь успешно прошёл протокол.</p></div>
+      <div class="stat"><b>FILE_002</b><p>Некоторые кнопки здесь не просто кнопки.</p></div>
+      <div class="stat"><b>FILE_003</b><p>Система любит тех, кто нажимает всё подряд.</p></div>
+      <div class="stat lock"><b>CLASSIFIED</b><p>🔒 Требуется секретный уровень.</p></div>
+      <div class="stat lock"><b>UNKNOWN</b><p>🔒 Даже разработчик не знает.</p></div>
+    </div>
+    <button class="btn" onclick="show('menu')">← НАЗАД</button>
+  </section>
+
+  <section id="achievements" class="screen panel card">
+    <h2>🏆 Достижения</h2>
+    <div id="achievementList"></div>
+    <button class="btn" onclick="show('menu')">← НАЗАД</button>
+  </section>
+
+  <section id="secrets" class="screen panel card">
+    <h2>🔐 СЕКРЕТЫ</h2>
+    <p>Некоторые секреты нельзя открыть кнопкой.</p>
+    <div id="secretList"></div>
+    <p class="muted">Подсказка: попробуй клавиатуру, логотип и странные действия.</p>
+    <button class="btn" onclick="show('menu')">← НАЗАД</button>
+  </section>
+
+  <section id="stats" class="screen panel card">
+    <h2>📊 Статистика</h2>
+    <div class="grid">
+      <div class="stat">Попыток<div class="big" id="attempts">0</div></div>
+      <div class="stat">Лучший счёт<div class="big" id="best">0</div></div>
+      <div class="stat">XP<div class="big" id="statsXP">0</div></div>
+      <div class="stat">Макс. комбо<div class="big" id="maxCombo">0</div></div>
+    </div>
+    <button class="btn danger" onclick="resetData()">СБРОСИТЬ ПРОГРЕСС</button>
+    <button class="btn" onclick="show('menu')">← НАЗАД</button>
+  </section>
+
+  <section id="game" class="screen panel card">
+    <div class="top">
+      <div>СТАДИЯ <b id="stage">1</b>/5</div>
+      <div>⏱ <b id="timer">60</b></div>
+    </div>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="muted" id="modeText">NORMAL MODE</div>
+    <div class="q" id="question"></div>
+    <div class="answers" id="answers"></div>
+    <div id="gameMeme" class="meme"></div>
+    <div>
+      <span class="badge">SCORE: <b id="score">0</b></span>
+      <span class="badge">COMBO: <b id="combo">0</b></span>
+    </div>
+  </section>
+
+  <section id="result" class="screen panel card">
+    <div class="muted">PROTOCOL COMPLETE</div>
+    <h1 id="resultTitle">RESULT</h1>
+    <p id="resultText"></p>
+    <div class="grid">
+      <div class="stat">Счёт<div class="big" id="finalScore">0</div></div>
+      <div class="stat">Точность<div class="big" id="accuracy">0%</div></div>
+      <div class="stat">XP<div class="big" id="earnedXP">0</div></div>
+    </div>
+    <div class="meme" id="resultMeme"></div>
+    <button class="btn main" onclick="startGame()">🔄 ЕЩЁ РАЗ</button>
+    <button class="btn" onclick="show('menu')">⌂ МЕНЮ</button>
+  </section>
+
+  <section id="secretRoom" class="screen panel card">
+    <div class="muted">UNAUTHORIZED ACCESS</div>
+    <h1 class="glitch">ROOM 404</h1>
+    <p>Ты нашёл комнату, которой официально не существует.</p>
+    <div class="meme">👁️ «Разработчик: я спрятал пасхалку. Пользователь через 8 секунд: нашёл.»</div>
+    <button class="btn main" onclick="secretChallenge()">ВЗЛОМАТЬ КОМНАТУ</button>
+    <button class="btn" onclick="show('menu')">← УЙТИ</button>
+  </section>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="modal" class="modal">
+  <div class="modalbox panel">
+    <h2 id="modalTitle"></h2>
+    <p id="modalText"></p>
+    <button class="btn main" onclick="closeModal()">OK</button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+let data=JSON.parse(localStorage.getItem('unknown4')||'null')||{
+ name:'UNKNOWN',
+ xp:0,level:1,attempts:0,best:0,maxCombo:0,
+ achievements:[],secrets:[],logoClicks:0
+};
+
+const memes=[
+'«Я просто посмотрю одну минуту» — человек, который провёл здесь 3 часа.',
+'404: мотивация не найдена.',
+'Когда ответил правильно: 😎. Когда увидел следующий вопрос: 💀.',
+'Мозг: мы всё знаем. Вопрос: 2+2. Мозг: так, это сложный вопрос.',
+'Система наблюдает за тобой. Система: 👁️👄👁️',
+'Ты думал, здесь будет нормальный сайт? АХАХАХА.',
+'Если ты это читаешь — ты уже слишком глубоко.',
+'POV: ты нажал на всё, что можно было нажать.',
+'Разработчик: спрятал пасхалки. Пользователь: challenge accepted.'
+];
+
+const questions=[
+ {q:'Сколько будет 2 + 2?',a:['3','4','5','22'],c:1},
+ {q:'Какой символ чаще всего означает секретный доступ?',a:['🔓','🔐','🍕','😂'],c:1},
+ {q:'Что означает 404?',a:['Успех','Не найдено','Взломано','Перезагрузка'],c:1},
+ {q:'Продолжи последовательность: 2, 4, 8, 16, ?',a:['20','24','32','64'],c:2},
+ {q:'Что быстрее всего открывает секреты?',a:['Игнорирование','Любопытство','Сон','Выключение телефона'],c:1},
+ {q:'Сколько букв в слове UNKNOWN?',a:['5','6','7','8'],c:2},
+ {q:'Если система пишет ERROR, что обычно делает пользователь?',a:['Уходит','Нажимает ещё 40 раз','Читает документацию','Паникует'],c:1},
+ {q:'Какой из вариантов выглядит наиболее подозрительно?',a:['normal.txt','secret.exe','photo.jpg','music.mp3'],c:1},
+ {q:'Что произойдёт, если нажать всё подряд?',a:['Ничего','Скорее всего найдётся пасхалка','Телефон станет холодильником','Появится кот'],c:1},
+ {q:'2^5 = ?',a:['10','25','32','64'],c:2},
+ {q:'Что скрыто за словом SECRET?',a:['Секрет','Неизвестно','Ничего','Всё сразу'],c:0},
+ {q:'Последовательность: 1, 1, 2, 3, 5, ?',a:['6','7','8','9'],c:2},
+ {q:'Какой ответ чаще выбирает человек, который не знает ответ?',a:['Первый','Последний','Случайный','Все'],c:2},
+ {q:'Что делает настоящий исследователь?',a:['Ищет','Спит','Закрывает всё','Боится кнопок'],c:0}
+];
+
+let game={stage:1,score:0,correct:0,total:0,combo:0,timer:60,questions:[]};
+let timerID=null;
+
+function save(){localStorage.setItem('unknown4',JSON.stringify(data));updateUI()}
+
+function updateUI(){
+ $('menuLvl').textContent=data.level;
+ $('menuXP').textContent=data.xp;
+ $('menuCombo').textContent=data.maxCombo;
+ $('profileName').textContent=data.name;
+ $('profileLevel').textContent=data.level;
+ $('profileXP').textContent=data.xp;
+ $('profileTitle').textContent=getTitle();
+ $('playerID').textContent=makeID();
+ $('attempts').textContent=data.attempts;
+ $('best').textContent=data.best;
+ $('statsXP').textContent=data.xp;
+ $('maxCombo').textContent=data.maxCombo;
+ $('hello').textContent='Добро пожаловать, '+data.name+'. Система уже что-то знает о тебе.';
+ renderAchievements();
+ renderSecrets();
+}
+
+function makeID(){
+ let s=localStorage.getItem('unknownID');
+ if(!s){s='UNK-'+Math.random().toString(36).slice(2,8).toUpperCase();localStorage.setItem('unknownID',s)}
+ return s;
+}
+
+function getTitle(){
+ if(data.level>=20)return'UNKNOWN';
+ if(data.level>=15)return'ЛЕГЕНДА';
+ if(data.level>=10)return'МАСТЕР';
+ if(data.level>=6)return'ХАКЕР';
+ if(data.level>=3)return'ИССЛЕДОВАТЕЛЬ';
+ return'НОВИЧОК';
+}
+
+function addXP(n){
+ data.xp+=n;
+ let old=data.level;
+ data.level=Math.floor(data.xp/100)+1;
+ if(data.level>old){
+   sound('level');
+   toast('⬆️ НОВЫЙ УРОВЕНЬ: '+data.level);
+ }
+ save();
+}
+
+function unlock(id,name){
+ if(!data.achievements.includes(id)){
+   data.achievements.push(id);
+   save();
+   sound('achievement');
+   toast('🏆 ДОСТИЖЕНИЕ: '+name);
+ }
+}
+
+function secret(id,text){
+ if(!data.secrets.includes(id)){
+   data.secrets.push(id);
+   save();
+   sound('secret');
+   toast('🔐 СЕКРЕТ НАЙДЕН');
+   modal('SECRET FOUND',text);
+ }
+}
+
+const achievementDefs=[
+ ['FIRST','FIRST STEP','Первый запуск протокола.'],
+ ['PERFECT','PERFECT','5 правильных ответов подряд.'],
+ ['SPEED','SPEEDRUN','Пройти протокол очень быстро.'],
+ ['COMBO10','COMBO 10','Достичь комбо x10.'],
+ ['MYSTERY','MYSTERY','Найти секретную комнату.'],
+ ['CLICKER','CLICKER','Нажать логотип 7 раз.'],
+ ['MATRIX','MATRIX','Активировать Matrix Mode.'],
+ ['LEGEND','LEGEND','Достичь титула ЛЕГЕНДА.']
+];
+
+function renderAchievements(){
+ $('achievementList').innerHTML=achievementDefs.map(x=>{
+   let ok=data.achievements.includes(x[0]);
+   return `<div class="stat ${ok?'':'lock'}"><b>${ok?'🏆':'🔒'} ${x[1]}</b><p>${x[2]}</p></div>`;
+ }).join('');
+}
+
+function renderSecrets(){
+ let arr=[
+  ['ROOM404','Комната 404','Скрытая комната'],
+  ['LOGO','UNKNOWN LOGO','7 кликов по логотипу'],
+  ['MATRIX','MATRIX','Секретная клавиатурная команда'],
+  ['KONAMI','KONAMI','Очень старая комбинация'],
+  ['NOPE','NOPE','Система сказала NOPE'],
+  ['CLICK100','CLICK 100','100 кликов'],
+ ];
+ $('secretList').innerHTML=arr.map(x=>{
+   let ok=data.secrets.includes(x[0]);
+   return `<div class="badge ${ok?'':'lock'}">${ok?'🔓':'🔒'} ${x[1]}</div>`;
+ }).join('');
+}
+
+function show(id){
+ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+ $(id).classList.add('active');
+ updateUI();
+ sound('click');
+}
+
+function startGame(){
+ game={stage:1,score:0,correct:0,total:0,combo:0,timer:60,questions:shuffle([...questions]).slice(0,5)};
+ data.attempts++;
+ save();
+ unlock('FIRST','FIRST STEP');
+ show('game');
+ $('modeText').textContent=Math.random()<.15?'⚠️ ANOMALY MODE':'NORMAL MODE';
+ nextQuestion();
+ clearInterval(timerID);
+ timerID=setInterval(()=>{
+   game.timer--;
+   $('timer').textContent=game.timer;
+   if(game.timer<=0)finishGame();
+ },1000);
+}
+
+function nextQuestion(){
+ if(game.stage>5){finishGame();return}
+ let x=game.questions[game.stage-1];
+ $('stage').textContent=game.stage;
+ $('bar').style.width=((game.stage-1)/5*100)+'%';
+ $('question').textContent=x.q;
+ $('answers').innerHTML='';
+ x.a.forEach((a,i)=>{
+   let b=document.createElement('button');
+   b.className='answer';
+   b.textContent=a;
+   b.onclick=()=>answer(i,x.c,b);
+   $('answers').appendChild(b);
+ });
+ $('gameMeme').textContent=memes[Math.floor(Math.random()*memes.length)];
+ $('score').textContent=game.score;
+ $('combo').textContent=game.combo;
+}
+
+function answer(i,c,btn){
+ if(btn.dataset.done)return;
+ btn.dataset.done=1;
+ game.total++;
+ let buttons=[...document.querySelectorAll('.answer')];
+ buttons.forEach(b=>b.disabled=true);
+
+ if(i===c){
+   btn.classList.add('good');
+   game.correct++;
+   game.combo++;
+   let points=100+game.combo*15;
+   game.score+=points;
+   addXP(10+game.combo);
+   sound('good');
+   if(game.combo>=5)unlock('PERFECT','PERFECT');
+   if(game.combo>=10)unlock('COMBO10','COMBO 10');
+   if(game.combo>data.maxCombo){data.maxCombo=game.combo;save()}
+   toast('✅ ПРАВИЛЬНО  +'+points+' XP');
+ }else{
+   btn.classList.add('bad');
+   buttons[c].classList.add('good');
+   game.combo=0;
+   sound('bad');
+   toast('❌ МИМО. Система разочарована.');
+ }
+ setTimeout(()=>{game.stage++;nextQuestion()},650);
+}
+
+function finishGame(){
+ clearInterval(timerID);
+ data.best=Math.max(data.best,game.score);
+ if(game.timer>45)unlock('SPEED','SPEEDRUN');
+ if(data.level>=15)unlock('LEGEND','LEGEND');
+ save();
+ let acc=game.total?Math.round(game.correct/game.total*100):0;
+ let earned=Math.max(10,Math.round(game.score/10));
+ addXP(earned);
+ $('finalScore').textContent=game.score;
+ $('accuracy').textContent=acc+'%';
+ $('earnedXP').textContent=earned;
+ $('resultTitle').textContent=game.score>=450?'🔥 LEGENDARY':game.score>=300?'⚡ HACKER':'UNKNOWN';
+ $('resultText').textContent=`${data.name}, ты завершил протокол. Правильных ответов: ${game.correct}/${game.total}.`;
+ $('resultMeme').textContent=acc===100?'🧠 Мозг сегодня решил не подводить.':memes[Math.floor(Math.random()*memes.length)];
+ show('result');
+ sound(game.score>=400?'win':'finish');
+}
+
+function secretChallenge(){
+ unlock('MYSTERY','MYSTERY');
+ secret('ROOM404','Ты официально нашёл ROOM 404. Здесь нет ничего полезного. Именно поэтому она здесь.');
+ show('secretRoom');
+}
+
+function saveName(){
+ let n=$('nameInput').value.trim();
+ if(n){
+  data.name=n.slice(0,20);
+  save();
+  toast('👤 Профиль обновлён');
+  show('menu');
+ }
+}
+
+function resetData(){
+ if(confirm('Точно удалить весь прогресс?')){
+  localStorage.removeItem('unknown4');
+  location.reload();
+ }
+}
+
+function shuffle(a){
+ for(let i=a.length-1;i>0;i--){
+  let j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ }
+ return a;
+}
+
+function toast(t){
+ $('toast').textContent=t;
+ $('toast').classList.add('show');
+ clearTimeout(window.tt);
+ window.tt=setTimeout(()=>$('toast').classList.remove('show'),2300);
+}
+
+function modal(t,x){
+ $('modalTitle').textContent=t;
+ $('modalText').textContent=x;
+ $('modal').classList.add('show');
+}
+function closeModal(){$('modal').classList.remove('show')}
+
+function sound(type){
+ try{
+  let C=window.AudioContext||window.webkitAudioContext;
+  if(!C)return;
+  let ctx=new C();
+  let o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);
+  let f={click:300,good:650,bad:110,level:900,achievement:1200,secret:180,finish:400,win:700}[type]||300;
+  o.frequency.value=f;
+  o.type=type==='bad'?'sawtooth':'sine';
+  g.gain.setValueAtTime(.0001,ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.08,ctx.currentTime+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.18);
+  o.start();o.stop(ctx.currentTime+.2);
+ }catch(e){}
+}
+
+let clicks=0;
+$('logo').onclick=()=>{
+ clicks++;
+ data.logoClicks++;
+ save();
+ sound('click');
+ if(clicks===3)toast('🤨 Ты что-то подозреваешь?');
+ if(clicks===7){
+  unlock('CLICKER','CLICKER');
+  secret('LOGO','Логотип оказался кнопкой. Никто не должен был это заметить.');
+  show('secretRoom');
+ }
+};
+
+let keySeq='';
+let konami=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight'];
+let konamiPos=0;
+
+document.addEventListener('keydown',e=>{
+ if(e.key==='m'||e.key==='M'){
+   document.body.classList.toggle('matrix');
+   unlock('MATRIX','MATRIX');
+   secret('MATRIX','MATRIX MODE активирован. Теперь система официально выглядит ещё подозрительнее.');
+ }
+ if(e.key===konami[konamiPos]){
+   konamiPos++;
+   if(konamiPos===konami.length){
+     konamiPos=0;
+     secret('KONAMI','Классическая секретная комбинация обнаружена. Ты слишком опасен для этой системы.');
+     unlock('MYSTERY','MYSTERY');
+   }
+ }else konamiPos=0;
+});
+
+let allClicks=0;
+document.addEventListener('click',()=>{
+ allClicks++;
+ if(allClicks===100)secret('CLICK100','100 кликов. Поздравляем. Ты буквально нажал всё.');
+});
+
+setInterval(()=>{
+ $('randomMeme').textContent=memes[Math.floor(Math.random()*memes.length)];
+ if(Math.random()<.08 && document.querySelector('#game.active')){
+   toast(['⚠️ ANOMALY DETECTED','👁️ SYSTEM WATCHING','💀 НЕ НАЖИМАЙ НИЧЕГО','🤨 suspicious activity'][Math.floor(Math.random()*4)]);
+ }
+},5000);
+
+const canvas=$('canvas'),ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function resize(){
+ W=canvas.width=innerWidth*devicePixelRatio;
+ H=canvas.height=innerHeight*devicePixelRatio;
+ canvas.style.width=innerWidth+'px';
+ canvas.style.height=innerHeight+'px';
+ pts=Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,v:Math.random()*.7+.2}));
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ ctx.fillStyle='rgba(120,50,255,.65)';
+ pts.forEach(p=>{
+  p.y+=p.v;
+  if(p.y>H)p.y=0;
+  ctx.fillRect(p.x,p.y,1.5,1.5);
+ });
+ requestAnimationFrame(draw);
+}
+addEventListener('resize',resize);
+resize();draw();
+
+setTimeout(()=>{
+ $('boot').style.opacity='0';
+ $('boot').style.transition='.7s';
+ setTimeout(()=>$('boot').remove(),700);
+ updateUI();
+},1700);
+
+if(new URLSearchParams(location.search).get('name')){
+ data.name=new URLSearchParams(location.search).get('name').slice(0,20);
+ save();
+}
+
+let urlSecret=new URLSearchParams(location.search).get('secret');
+if(urlSecret){
+ setTimeout(()=>modal('SECRET MESSAGE',urlSecret),2200);
+}
+
+updateUI();
+</script>
+</body>
+</html>
