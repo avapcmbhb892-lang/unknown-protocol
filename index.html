@@ -58,6 +58,30 @@ input{width:100%;padding:14px;border-radius:12px;border:1px solid #333;backgroun
 .shake{animation:shake .3s}
 @keyframes shake{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
 @media(max-width:600px){.app{padding:10px}.card{padding:18px}.top{align-items:flex-start}.q{font-size:19px}}
+
+<style>
+.meme-chaos{
+position:fixed;z-index:50;left:50%;top:50%;
+transform:translate(-50%,-50%) scale(.7);
+width:min(90%,520px);padding:25px;text-align:center;
+background:rgba(8,8,14,.97);border:2px solid #a970ff;
+border-radius:22px;box-shadow:0 0 60px #7b2cff88;
+opacity:0;pointer-events:none;transition:.25s
+}
+.meme-chaos.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.meme-chaos .emoji{font-size:65px}
+.meme-chaos h2{font-size:27px;margin:10px 0}
+.meme-chaos p{font-size:16px}
+.chaos-progress{height:5px;background:#222;border-radius:9px;overflow:hidden}
+.chaos-progress i{display:block;height:100%;width:100%;background:#a970ff}
+.fake-ban{
+position:fixed;inset:0;z-index:60;background:#050505;
+display:none;align-items:center;justify-content:center;
+text-align:center;padding:25px
+}
+.fake-ban.show{display:flex}
+.fake-ban h1{font-size:clamp(35px,10vw,80px)}
+</style>
 </style>
 </head>
 <body>
@@ -587,6 +611,223 @@ if(urlSecret){
 }
 
 updateUI();
+</script>
+
+<div id="memeChaos" class="meme-chaos">
+  <div class="emoji" id="chaosEmoji">😂</div>
+  <h2 id="chaosTitle">MEME ATTACK</h2>
+  <p id="chaosText"></p>
+  <div class="chaos-progress"><i id="chaosBar"></i></div>
+</div>
+
+<div id="fakeBan" class="fake-ban">
+  <div>
+    <div style="font-size:80px">🚨</div>
+    <h1>ТЫ ЗАБЛОКИРОВАН</h1>
+    <p>Причина: слишком много подозрительности.</p>
+    <p id="banText">Проверка системы...</p>
+  </div>
+</div>
+
+<script>
+/* =========================
+   UNKNOWN PROTOCOL 5.0
+   MEME CHAOS ENGINE
+========================= */
+
+const chaosMemes=[
+ ["😂","МОЗГ ПОКИНУЛ ЧАТ","Ты ответил настолько уверенно, что система решила ничего не уточнять."],
+ ["🗿","РЕЖИМ 🗿","Эмоции временно отключены. 🗿"],
+ ["🤨","ТЫ ТОЧНО ЧЕЛОВЕК?","Система заметила подозрительно много кликов."],
+ ["💀","404: МОЗГ НЕ НАЙДЕН","Попробуй перезагрузить мыслительный процесс."],
+ ["🐈","КОТ ОБНАРУЖЕН","Он ничего не делает. Просто контролирует ситуацию."],
+ ["🧠","ИНТЕЛЛЕКТ ПЕРЕГРЕТ","Сделай вид, что это была сложная задача."],
+ ["📡","ПЕРЕХВАТ СИГНАЛА","Источник сигнала: твой телефон."],
+ ["👁️","СИСТЕМА СМОТРИТ","Не переживай. Наверное."],
+ ["🎰","МЕМ-РУЛЕТКА","Поздравляем! Ты ничего не выиграл."],
+ ["🤡","КЛОУНСКИЙ ПРОТОКОЛ","Система временно работает на юморе."],
+ ["🗿","СЕРЬЁЗНАЯ ПРОВЕРКА","Вопрос: почему ты всё ещё здесь?"],
+ ["🚨","КРИТИЧЕСКАЯ ОШИБКА","Ошибка успешно обнаружена. Ошибка: неизвестно."],
+ ["😂","РАЗРАБОТЧИК СКАЗАЛ НЕТ","Но пользователь всё равно нажал."],
+ ["🧪","ЭКСПЕРИМЕНТ","Поздравляем. Ты являешься частью эксперимента."],
+ ["👽","ПОСЕТИТЕЛЬ ОБНАРУЖЕН","Источник: неизвестен. Возможно, это ты."]
+];
+
+function memeAttack(force=false){
+ if(!force && Math.random()>.20)return;
+
+ const x=chaosMemes[Math.floor(Math.random()*chaosMemes.length)];
+ $("chaosEmoji").textContent=x[0];
+ $("chaosTitle").textContent=x[1];
+ $("chaosText").textContent=x[2];
+
+ $("memeChaos").classList.add("show");
+ sound("click");
+
+ const bar=$("chaosBar");
+ bar.style.transition="none";
+ bar.style.width="100%";
+
+ setTimeout(()=>{
+   bar.style.transition="width 3s linear";
+   bar.style.width="0%";
+ },30);
+
+ setTimeout(()=>{
+   $("memeChaos").classList.remove("show");
+ },3100);
+}
+
+function fakeBan(){
+ $("fakeBan").classList.add("show");
+ sound("bad");
+
+ let messages=[
+   "Анализ поведения...",
+   "Подозрительность: 97%",
+   "Поиск причины...",
+   "Причина найдена.",
+   "Ладно, это была шутка 😂"
+ ];
+
+ let i=0;
+ const el=$("banText");
+ const t=setInterval(()=>{
+   el.textContent=messages[i++]||messages.at(-1);
+   if(i>=messages.length){
+     clearInterval(t);
+     setTimeout(()=>{
+       $("fakeBan").classList.remove("show");
+       memeAttack(true);
+     },900);
+   }
+ },600);
+}
+
+/* Случайные мем-события */
+setInterval(()=>{
+ if(document.visibilityState==="visible"){
+   if(Math.random()<.14)memeAttack();
+ }
+},7000);
+
+/* После правильных/неправильных ответов */
+const oldAnswer=window.answer;
+if(typeof oldAnswer==="function"){
+ const originalAnswer=oldAnswer;
+ window.answer=function(i,c,btn){
+   originalAnswer(i,c,btn);
+   setTimeout(()=>{
+     if(i===c && Math.random()<.28)memeAttack();
+     if(i!==c && Math.random()<.35)memeAttack();
+   },300);
+ };
+}
+
+/* Секрет: написать SUS */
+let typed="";
+document.addEventListener("keydown",e=>{
+ typed=(typed+e.key.toLowerCase()).slice(-20);
+
+ if(typed.includes("sus")){
+   typed="";
+   secret(
+     "NOPE",
+     "SUS DETECTED. Система подозревает, что подозрительный здесь именно ты. 🤨"
+   );
+   memeAttack(true);
+ }
+
+ if(typed.includes("admin")){
+   typed="";
+   toast("👑 ADMIN? Нет. Но попытка хорошая.");
+ }
+
+ if(typed.includes("cat")){
+   typed="";
+   secret(
+     "CAT",
+     "🐈 Ты нашёл секретного кота. Он ничего не делает. Он просто кот."
+   );
+   memeAttack(true);
+ }
+});
+
+/* Долгое удержание логотипа */
+let holdTimer;
+$("logo").addEventListener("touchstart",()=>{
+ holdTimer=setTimeout(()=>{
+   fakeBan();
+ },1800);
+});
+$("logo").addEventListener("touchend",()=>clearTimeout(holdTimer));
+
+/* Двойной клик по статусу */
+$("status").addEventListener("dblclick",()=>{
+ fakeBan();
+});
+
+/* Особый случай: слишком много ошибок */
+let wrongCount=0;
+const oldToast=window.toast;
+window.toast=function(t){
+ oldToast(t);
+ if(String(t).includes("МИМО")){
+   wrongCount++;
+   if(wrongCount===3){
+     wrongCount=0;
+     memeAttack(true);
+   }
+   if(Math.random()<.12)fakeBan();
+ }
+};
+
+/* Добавляем кнопку мем-атаки в меню */
+setTimeout(()=>{
+ const menu=document.querySelector("#menu");
+ if(menu && !document.querySelector("#memeButton")){
+   const b=document.createElement("button");
+   b.id="memeButton";
+   b.className="btn";
+   b.textContent="😂 МЕМ-АТАКА";
+   b.onclick=()=>memeAttack(true);
+   menu.appendChild(b);
+ }
+},1000);
+
+/* Пасхалка по клику на фон 13 раз */
+let bgClicks=0;
+document.addEventListener("click",e=>{
+ if(e.target===document.body || e.target===document.documentElement){
+   bgClicks++;
+   if(bgClicks===13){
+     bgClicks=0;
+     secret(
+       "BACKGROUND",
+       "Ты кликнул по пустому месту 13 раз. Зачем? Система тоже не знает. 😂"
+     );
+     memeAttack(true);
+   }
+ }
+});
+
+/* Пасхалка при очень быстром прохождении */
+setInterval(()=>{
+ if(typeof game!=="undefined" && game.timer===59 && game.stage===1){
+   if(Math.random()<.35){
+     toast("👀 Ты слишком быстро начал...");
+   }
+ }
+},1000);
+
+console.log(
+ "%cUNKNOWN PROTOCOL 5.0",
+ "font-size:25px;color:#a970ff;font-weight:bold"
+);
+console.log(
+ "%cЕсли ты открыл DevTools — поздравляем, ты любопытный.",
+ "color:#63ffbf"
+);
 </script>
 </body>
 </html>
