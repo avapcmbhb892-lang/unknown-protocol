@@ -82,6 +82,28 @@ text-align:center;padding:25px
 .fake-ban.show{display:flex}
 .fake-ban h1{font-size:clamp(35px,10vw,80px)}
 </style>
+
+<style>
+.chaos-meter{height:12px;background:#15151f;border-radius:99px;overflow:hidden;margin:10px 0}
+.chaos-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#55ff99,#ffff55,#ff335f);transition:.5s}
+.coin{font-size:20px;font-weight:900}
+.shopitem,.minigame{padding:18px;border:1px solid #29293b;background:#0c0c14;border-radius:16px;margin:10px 0}
+.shopitem{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.theme-purple{filter:none}
+.theme-matrix{filter:hue-rotate(70deg)}
+.theme-red{filter:hue-rotate(300deg)}
+.theme-cold{filter:hue-rotate(160deg)}
+.crazy{animation:crazy .25s infinite}
+@keyframes crazy{
+0%{transform:translate(0)}
+25%{transform:translate(2px,-1px)}
+50%{transform:translate(-2px,2px)}
+75%{transform:translate(1px,1px)}
+100%{transform:translate(0)}
+}
+.symbols{font-size:42px;letter-spacing:10px;text-align:center;padding:20px}
+.catcollection{font-size:42px;letter-spacing:5px;line-height:1.8}
+</style>
 </style>
 </head>
 <body>
@@ -122,6 +144,12 @@ text-align:center;padding:25px
       <button class="btn" onclick="show('achievements')">🏆 ДОСТИЖЕНИЯ</button>
       <button class="btn" onclick="show('secrets')">🔐 СЕКРЕТЫ</button>
       <button class="btn" onclick="show('stats')">📊 СТАТИСТИКА</button>
+<button class="btn" onclick="show('miniGames')">🎮 МИНИ-ИГРЫ</button>
+<button class="btn" onclick="show('shop')">🛒 МАГАЗИН</button>
+<button class="btn" onclick="show('daily')">🎁 DAILY</button>
+<button class="btn" onclick="show('chaos')">🌀 БЕЗУМИЕ</button>
+<button class="btn" onclick="show('cats')">🐈 КОТЫ</button>
+
     </div>
 
     <div style="margin-top:18px">
@@ -223,6 +251,70 @@ text-align:center;padding:25px
   </section>
 </div>
 
+
+<section id="chaos" class="screen panel card">
+<h2>🌀 УРОВЕНЬ БЕЗУМИЯ</h2>
+<div class="big"><span id="chaosValue">0</span>%</div>
+<div class="chaos-meter"><i id="chaosBar"></i></div>
+<p id="chaosText">Система пока считает тебя относительно нормальным.</p>
+<button class="btn main" onclick="chaosAction()">УВЕЛИЧИТЬ БЕЗУМИЕ</button>
+<button class="btn" onclick="show('menu')">← НАЗАД</button>
+</section>
+
+<section id="miniGames" class="screen panel card">
+<h2>🎮 МИНИ-ИГРЫ</h2>
+<div class="minigame">
+<b>⚡ REACTION</b>
+<p>Нажми кнопку, когда она станет зелёной.</p>
+<button class="btn main" id="reactionBtn" onclick="reactionStart()">НАЧАТЬ</button>
+</div>
+<div class="minigame">
+<b>🎯 GUESS</b>
+<p>Система загадала число от 1 до 10.</p>
+<input id="guessInput" type="number" min="1" max="10" placeholder="1–10">
+<button class="btn" onclick="guessGame()">УГАДАТЬ</button>
+</div>
+<div class="minigame">
+<b>👀 FIND</b>
+<p>Найди символ, который отличается:</p>
+<div class="symbols" id="symbols">OOOOOOOOOOOOOOO</div>
+<button class="btn" onclick="findGame()">ПОКАЗАТЬ ЗАДАНИЕ</button>
+</div>
+<button class="btn" onclick="show('menu')">← НАЗАД</button>
+</section>
+
+<section id="shop" class="screen panel card">
+<h2>🛒 UNKNOWN SHOP</h2>
+<p>Монеты: <span class="coin">🪙 <span id="coins">0</span></span></p>
+<div id="shopList"></div>
+<button class="btn" onclick="show('menu')">← НАЗАД</button>
+</section>
+
+<section id="daily" class="screen panel card">
+<h2>🎁 DAILY BONUS</h2>
+<div class="stat">
+<div class="big" id="dailyText">Проверка...</div>
+<p>За ежедневный вход можно получить UNKNOWN COINS.</p>
+<button class="btn main" onclick="claimDaily()">ЗАБРАТЬ БОНУС</button>
+</div>
+<button class="btn" onclick="show('menu')">← НАЗАД</button>
+</section>
+
+<section id="cats" class="screen panel card">
+<h2>🐈 КОЛЛЕКЦИЯ КОТОВ</h2>
+<div class="catcollection" id="catCollection">🔒 🔒 🔒 🔒 🔒 🔒</div>
+<p id="catText">Найди секретные события, чтобы открыть котов.</p>
+<button class="btn main" onclick="findCat()">🔎 ИСКАТЬ КОТА</button>
+<button class="btn" onclick="show('menu')">← НАЗАД</button>
+</section>
+
+<section id="ending" class="screen panel card">
+<div class="muted">FINAL PROTOCOL</div>
+<h1 class="glitch">UNKNOWN ENDING</h1>
+<p id="endingText"></p>
+<div class="meme">Система: «Ты действительно прошёл всё это?»<br>Ты: «Ну да.»<br>Система: «...зачем?» 😂</div>
+<button class="btn main" onclick="show('menu')">ЯСНО</button>
+</section>
 <div id="toast" class="toast"></div>
 
 <div id="modal" class="modal">
@@ -828,6 +920,301 @@ console.log(
  "%cЕсли ты открыл DevTools — поздравляем, ты любопытный.",
  "color:#63ffbf"
 );
+</script>
+
+<script>
+/* =====================================
+   UNKNOWN PROTOCOL 6.0
+   CHAOS ENGINE
+===================================== */
+
+data.coins=data.coins||0;
+data.chaos=data.chaos||0;
+data.cats=data.cats||[];
+data.daily=data.daily||"";
+
+const shopItems=[
+ ["purple","💜 PURPLE","Базовая тема",20],
+ ["matrix","💚 MATRIX","Зелёная тема",40],
+ ["red","❤️ CHAOS RED","Красная тема",60],
+ ["cold","💙 COLD","Холодная тема",80]
+];
+
+function update6(){
+ if($("coins"))$("coins").textContent=data.coins;
+ if($("chaosValue"))$("chaosValue").textContent=data.chaos;
+ if($("chaosBar"))$("chaosBar").style.width=data.chaos+"%";
+
+ let text=
+ data.chaos<20?"Система считает тебя относительно нормальным.":
+ data.chaos<40?"Подозрительность повышается.":
+ data.chaos<60?"Система начинает нервничать.":
+ data.chaos<80?"⚠️ ТЫ СТАНОВИШЬСЯ ХАОТИЧНЫМ.":
+ "🚨 КРИТИЧЕСКИЙ УРОВЕНЬ БЕЗУМИЯ.";
+
+ if($("chaosText"))$("chaosText").textContent=text;
+
+ renderShop();
+ renderCats();
+
+ if(data.chaos>=100 && !data.secrets.includes("CHAOS100")){
+   data.secrets.push("CHAOS100");
+   unlock("MYSTERY","MYSTERY");
+   save();
+   setTimeout(()=>{
+     $("endingText").textContent=
+       "Ты достиг 100% безумия. Система больше не уверена, кто здесь управляет.";
+     show("ending");
+     sound("win");
+   },300);
+ }
+}
+
+function chaosAction(){
+ let add=Math.floor(Math.random()*16)+5;
+ data.chaos=Math.min(100,data.chaos+add);
+ data.coins+=Math.floor(add/3);
+ addXP(5);
+ save();
+ document.body.classList.add("crazy");
+ setTimeout(()=>document.body.classList.remove("crazy"),700);
+
+ const msgs=[
+  "🗿 Безумие увеличено.",
+  "🤨 Это точно хорошая идея?",
+  "😂 Система пожалела, что дала тебе доступ.",
+  "🚨 Уровень подозрительности растёт.",
+  "👁️ Кто разрешил тебе это нажимать?"
+ ];
+ toast(msgs[Math.floor(Math.random()*msgs.length)]);
+ update6();
+}
+
+function renderShop(){
+ if(!$("shopList"))return;
+ $("shopList").innerHTML=shopItems.map(x=>{
+   let owned=data.secrets.includes("THEME_"+x[0]);
+   return `<div class="shopitem">
+     <div><b>${x[1]}</b><div class="muted">${x[2]}</div></div>
+     <button class="btn ${owned?'green':''}" onclick="buyTheme('${x[0]}',${x[3]})">
+     ${owned?'ИСПОЛЬЗОВАТЬ':'🪙 '+x[3]}
+     </button>
+   </div>`;
+ }).join("");
+}
+
+function buyTheme(id,cost){
+ let key="THEME_"+id;
+ if(!data.secrets.includes(key)){
+   if(data.coins<cost){
+     toast("🪙 Не хватает монет.");
+     sound("bad");
+     return;
+   }
+   data.coins-=cost;
+   data.secrets.push(key);
+   save();
+   toast("🛒 Куплено!");
+ }
+ document.body.classList.remove("theme-purple","theme-matrix","theme-red","theme-cold");
+ document.body.classList.add("theme-"+id);
+ sound("achievement");
+ update6();
+}
+
+function claimDaily(){
+ let today=new Date().toISOString().slice(0,10);
+
+ if(data.daily===today){
+   toast("🎁 Бонус уже забран сегодня.");
+   return;
+ }
+
+ data.daily=today;
+ let reward=25+Math.floor(Math.random()*51);
+ data.coins+=reward;
+ addXP(10);
+ save();
+
+ toast("🎁 DAILY: +"+reward+" 🪙");
+ update6();
+}
+
+function reactionStart(){
+ let b=$("reactionBtn");
+ b.disabled=true;
+ b.textContent="ЖДИ...";
+ b.style.background="#30101a";
+
+ let delay=1000+Math.random()*3000;
+
+ setTimeout(()=>{
+   let start=performance.now();
+   b.disabled=false;
+   b.textContent="🔥 ЖМИ!";
+   b.style.background="#123c29";
+
+   let handler=()=>{
+     let ms=Math.round(performance.now()-start);
+     b.removeEventListener("click",handler);
+     b.textContent=ms+" ms";
+     b.style.background="";
+     let reward=ms<300?40:ms<600?25:10;
+     data.coins+=reward;
+     addXP(15);
+     data.chaos=Math.min(100,data.chaos+5);
+     save();
+     toast("⚡ "+ms+" ms → +"+reward+" 🪙");
+     update6();
+   };
+
+   b.onclick=handler;
+ },delay);
+}
+
+function guessGame(){
+ let v=Number($("guessInput").value);
+
+ if(v<1||v>10){
+   toast("🤨 От 1 до 10.");
+   return;
+ }
+
+ let n=Math.floor(Math.random()*10)+1;
+
+ if(v===n){
+   data.coins+=50;
+   data.chaos=Math.min(100,data.chaos+8);
+   addXP(25);
+   toast("🎯 ПОПАЛ! +50 🪙");
+   sound("win");
+ }else{
+   data.coins+=2;
+   data.chaos=Math.min(100,data.chaos+3);
+   toast("❌ Было "+n+". Система смеётся.");
+   sound("bad");
+ }
+
+ save();
+ update6();
+}
+
+function findGame(){
+ let arr=Array(14).fill("O");
+ let pos=Math.floor(Math.random()*14);
+ arr[pos]="0";
+ $("symbols").textContent=arr.join("");
+ $("symbols").onclick=function(e){
+   let r=document.createRange();
+   let target=e.target;
+
+   if(target===e.currentTarget){
+     toast("👀 Теперь попробуй найти.");
+     return;
+   }
+
+   toast("🧠 Класс. Ты посмотрел.");
+ };
+
+ toast("👀 Один символ отличается...");
+ data.chaos=Math.min(100,data.chaos+2);
+ save();
+ update6();
+}
+
+function findCat(){
+ let available=["🐈","😺","😸","😹","😻","🙀","😼","😽"];
+
+ if(data.cats.length>=available.length){
+   toast("🐈 Все коты уже собраны.");
+   return;
+ }
+
+ let next=available[data.cats.length];
+ data.cats.push(next);
+ data.coins+=15;
+ addXP(10);
+ save();
+
+ toast(next+" КОТ НАЙДЕН! +15 🪙");
+ sound("achievement");
+ update6();
+}
+
+function renderCats(){
+ if(!$("catCollection"))return;
+
+ let all=["🐈","😺","😸","😹","😻","🙀","😼","😽"];
+
+ $("catCollection").textContent=all.map((x,i)=>
+   data.cats[i]||"🔒"
+ ).join(" ");
+
+ if($("catText")){
+   $("catText").textContent=
+     "Собрано: "+data.cats.length+"/"+all.length;
+ }
+}
+
+/* Секретная комбинация: 6-0-6 */
+let secretKeys="";
+document.addEventListener("keydown",e=>{
+ if(/[0-9]/.test(e.key)){
+   secretKeys=(secretKeys+e.key).slice(-3);
+
+   if(secretKeys==="606"){
+     secretKeys="";
+     data.coins+=100;
+     data.chaos=Math.min(100,data.chaos+20);
+     secret(
+       "CODE606",
+       "Ты нашёл код 606. Награда: 100 UNKNOWN COINS."
+     );
+     save();
+     update6();
+   }
+ }
+});
+
+/* Набор "chaos" */
+let chaosTyped="";
+document.addEventListener("keydown",e=>{
+ chaosTyped=(chaosTyped+e.key.toLowerCase()).slice(-10);
+
+ if(chaosTyped.includes("chaos")){
+   chaosTyped="";
+   data.chaos=Math.min(100,data.chaos+30);
+   data.coins+=30;
+   save();
+   update6();
+   memeAttack(true);
+   toast("🌀 CHAOS MODE +30");
+ }
+});
+
+/* Меню теперь тоже увеличивает безумие */
+const oldShow6=window.show;
+window.show=function(id){
+ oldShow6(id);
+ setTimeout(update6,100);
+ if(id!=="chaos" && Math.random()<.08){
+   data.chaos=Math.min(100,data.chaos+1);
+   save();
+ }
+};
+
+/* Проверка daily */
+setInterval(()=>{
+ if($("dailyText")){
+   let today=new Date().toISOString().slice(0,10);
+   $("dailyText").textContent=
+     data.daily===today
+     ?"БОНУС УЖЕ ЗАБРАН 🎁"
+     :"БОНУС ДОСТУПЕН! 🎁";
+ }
+},1000);
+
+setTimeout(update6,500);
 </script>
 </body>
 </html>
