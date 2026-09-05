@@ -1294,9 +1294,22 @@ setTimeout(update6,500);
   <button class="up7-btn" onclick="show('up7')">← НАЗАД</button>
 </section>
 
-<button id="up7-hub" onclick="show('up7')">⚡ 7.0</button>
+<button id="up7-hub" onclick="openUp7()">⚡ 7.0</button>
 
 <script>
+/* ===== 7.0 SCREEN SWITCH ===== */
+window.openUp7=function(){
+  document.querySelectorAll(".screen").forEach(function(el){
+    el.classList.remove("active");
+    el.style.display="none";
+  });
+  var el=document.getElementById("up7");
+  if(el){
+    el.classList.add("active");
+    el.style.display="block";
+  }
+};
+
 /* ===== UNKNOWN PROTOCOL 7.0 ENGINE ===== */
 (function(){
   data.coins = data.coins || 0;
@@ -1602,7 +1615,7 @@ setTimeout(update6,500);
         b.id="up7-menu-btn";
         b.className="btn";
         b.textContent="🌐 UNKNOWN WORLD 7.0";
-        b.onclick=()=>show("up7");
+        b.onclick=()=>openUp7();
         menu.appendChild(b);
       }
     }catch(e){}
