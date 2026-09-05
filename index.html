@@ -105,6 +105,70 @@ text-align:center;padding:25px
 .catcollection{font-size:42px;letter-spacing:5px;line-height:1.8}
 </style>
 
+
+
+/* ===== UNKNOWN UI SOUND UPDATE ===== */
+.ui61-glow{
+  box-shadow:0 0 30px rgba(0,255,170,.10),inset 0 0 25px rgba(0,255,170,.025)
+}
+.ui61-nav{
+  position:fixed;left:50%;bottom:12px;transform:translateX(-50%);
+  width:min(94%,430px);z-index:9998;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  padding:8px;border:1px solid rgba(0,255,153,.18);
+  border-radius:20px;background:rgba(4,10,9,.94);
+  backdrop-filter:blur(18px);box-shadow:0 8px 35px rgba(0,0,0,.45)
+}
+.ui61-nav button{
+  border:0;background:transparent;color:#84958f;
+  border-radius:14px;padding:9px 4px;font-size:11px;font-weight:800;
+  transition:.2s
+}
+.ui61-nav button:active{transform:scale(.92)}
+.ui61-nav button span{display:block;font-size:20px;margin-bottom:3px}
+.ui61-nav button.active{background:rgba(0,255,153,.10);color:#00ff99}
+.ui61-settings{
+  position:fixed;inset:0;z-index:10000;display:none;
+  align-items:flex-end;background:rgba(0,0,0,.65);
+  backdrop-filter:blur(5px)
+}
+.ui61-settings.open{display:flex}
+.ui61-sheet{
+  width:100%;box-sizing:border-box;padding:22px 18px 30px;
+  border-radius:25px 25px 0 0;
+  background:#07100e;border:1px solid rgba(0,255,153,.2);
+  box-shadow:0 -15px 50px rgba(0,0,0,.55)
+}
+.ui61-sheet h2{margin:0 0 18px;color:#00ff99}
+.ui61-setting{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:15px 0;border-bottom:1px solid rgba(255,255,255,.07)
+}
+.ui61-toggle{
+  width:52px;height:30px;border-radius:20px;border:0;
+  background:#222;position:relative
+}
+.ui61-toggle i{
+  position:absolute;width:22px;height:22px;top:4px;left:4px;
+  border-radius:50%;background:#777;transition:.2s
+}
+.ui61-toggle.on{background:#064d35}
+.ui61-toggle.on i{left:26px;background:#00ff99}
+.ui61-range{width:130px}
+.ui61-toast{
+  position:fixed;left:50%;top:18px;transform:translate(-50%,-15px);
+  z-index:10001;opacity:0;pointer-events:none;
+  padding:11px 15px;border:1px solid rgba(0,255,153,.25);
+  border-radius:14px;background:rgba(3,10,8,.94);
+  color:#00ff99;font-weight:800;font-size:13px;
+  transition:.25s;max-width:88%;text-align:center
+}
+.ui61-toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:600px){
+  body{padding-bottom:78px}
+  .screen.card{border-radius:18px}
+}
+
 </style>
 </head>
 <body>
@@ -1561,5 +1625,239 @@ setTimeout(update6,500);
   save7();
 })();
 </script>
+
+
+<!-- ===== UNKNOWN UI SOUND UPDATE ===== -->
+<nav class="ui61-nav" id="ui61nav">
+  <button class="active" onclick="ui61Home(this)">
+    <span>⌂</span>ГЛАВНАЯ
+  </button>
+  <button onclick="ui61Sound(this)">
+    <span>🔊</span>ЗВУК
+  </button>
+  <button onclick="ui61Stats(this)">
+    <span>📊</span>СТАТЫ
+  </button>
+  <button onclick="ui61Settings(this)">
+    <span>⚙️</span>НАСТРОЙКИ
+  </button>
+</nav>
+
+<div id="ui61toast" class="ui61-toast"></div>
+
+<div id="ui61settings" class="ui61-settings">
+  <div class="ui61-sheet">
+    <h2>⚙️ НАСТРОЙКИ</h2>
+
+    <div class="ui61-setting">
+      <div>🔊 Звуки</div>
+      <button id="ui61sound" class="ui61-toggle on"
+              onclick="ui61ToggleSound()"><i></i></button>
+    </div>
+
+    <div class="ui61-setting">
+      <div>📳 Вибрация</div>
+      <button id="ui61vib" class="ui61-toggle on"
+              onclick="ui61ToggleVib()"><i></i></button>
+    </div>
+
+    <div class="ui61-setting">
+      <div>🎚️ Громкость</div>
+      <input id="ui61volume" class="ui61-range"
+             type="range" min="0" max="1" step=".05" value=".35"
+             onchange="ui61Save()">
+    </div>
+
+    <button class="btn" style="width:100%;margin-top:18px"
+            onclick="ui61Close()">ЗАКРЫТЬ</button>
+  </div>
+</div>
+
+
+<script>
+/* ===== UNKNOWN UI SOUND UPDATE ENGINE ===== */
+(function(){
+
+  data.ui61Sound = data.ui61Sound !== false;
+  data.ui61Vib = data.ui61Vib !== false;
+  data.ui61Volume = data.ui61Volume ?? .35;
+
+  let audioCtx = null;
+
+  function saveUI(){
+    try{localStorage.setItem("unknown4",JSON.stringify(data));}catch(e){}
+    if(typeof save==="function"){
+      try{save()}catch(e){}
+    }
+  }
+
+  function audio(){
+    if(!data.ui61Sound) return null;
+    try{
+      if(!audioCtx)
+        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==="suspended") audioCtx.resume();
+      return audioCtx;
+    }catch(e){return null}
+  }
+
+  window.ui61Beep=function(type="click"){
+    const ctx=audio();
+    if(!ctx)return;
+
+    const now=ctx.currentTime;
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+
+    const freq={
+      click:420,
+      success:720,
+      error:180,
+      level:900,
+      secret:1100,
+      open:520
+    }[type]||420;
+
+    o.type=type==="error"?"sawtooth":"sine";
+    o.frequency.setValueAtTime(freq,now);
+
+    if(type==="success"||type==="level"||type==="secret")
+      o.frequency.exponentialRampToValueAtTime(freq*1.35,now+.16);
+
+    g.gain.setValueAtTime(.0001,now);
+    g.gain.exponentialRampToValueAtTime(data.ui61Volume,now+.015);
+    g.gain.exponentialRampToValueAtTime(.0001,now+.18);
+
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start(now);
+    o.stop(now+.2);
+  };
+
+  window.ui61Vibrate=function(ms=18){
+    if(data.ui61Vib && navigator.vibrate){
+      try{navigator.vibrate(ms)}catch(e){}
+    }
+  };
+
+  window.ui61Feedback=function(type="click"){
+    ui61Beep(type);
+    ui61Vibrate(type==="error"?35:18);
+  };
+
+  window.ui61Toast=function(text){
+    const el=document.getElementById("ui61toast");
+    if(!el)return;
+    el.textContent=text;
+    el.classList.add("show");
+    clearTimeout(window.ui61ToastTimer);
+    window.ui61ToastTimer=setTimeout(
+      ()=>el.classList.remove("show"),1800
+    );
+  };
+
+  window.ui61Home=function(btn){
+    ui61Feedback("open");
+    document.querySelectorAll("#ui61nav button")
+      .forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+
+    if(typeof show==="function"){
+      try{show("menu");}catch(e){}
+    }
+  };
+
+  window.ui61Sound=function(btn){
+    ui61Feedback("click");
+    document.querySelectorAll("#ui61nav button")
+      .forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    ui61Toast(data.ui61Sound?"🔊 Звуки включены":"🔇 Звуки выключены");
+  };
+
+  window.ui61Stats=function(btn){
+    ui61Feedback("open");
+    document.querySelectorAll("#ui61nav button")
+      .forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+
+    if(typeof show==="function"){
+      try{show("stats");}catch(e){}
+    }
+  };
+
+  window.ui61Settings=function(btn){
+    ui61Feedback("open");
+    document.querySelectorAll("#ui61nav button")
+      .forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+
+    const el=document.getElementById("ui61settings");
+    if(el)el.classList.add("open");
+
+    const sound=document.getElementById("ui61sound");
+    const vib=document.getElementById("ui61vib");
+    const vol=document.getElementById("ui61volume");
+
+    if(sound)sound.classList.toggle("on",data.ui61Sound);
+    if(vib)vib.classList.toggle("on",data.ui61Vib);
+    if(vol)vol.value=data.ui61Volume;
+  };
+
+  window.ui61Close=function(){
+    ui61Feedback("click");
+    document.getElementById("ui61settings")
+      ?.classList.remove("open");
+  };
+
+  window.ui61ToggleSound=function(){
+    data.ui61Sound=!data.ui61Sound;
+    saveUI();
+
+    const el=document.getElementById("ui61sound");
+    if(el)el.classList.toggle("on",data.ui61Sound);
+
+    if(data.ui61Sound)ui61Beep("success");
+    ui61Toast(data.ui61Sound?"🔊 ЗВУК ВКЛ":"🔇 ЗВУК ВЫКЛ");
+  };
+
+  window.ui61ToggleVib=function(){
+    data.ui61Vib=!data.ui61Vib;
+    saveUI();
+
+    const el=document.getElementById("ui61vib");
+    if(el)el.classList.toggle("on",data.ui61Vib);
+
+    ui61Vibrate(30);
+    ui61Toast(data.ui61Vib?"📳 ВИБРАЦИЯ ВКЛ":"📴 ВИБРАЦИЯ ВЫКЛ");
+  };
+
+  window.ui61Save=function(){
+    const vol=document.getElementById("ui61volume");
+    if(vol)data.ui61Volume=Number(vol.value);
+    saveUI();
+    ui61Toast("💾 НАСТРОЙКИ СОХРАНЕНЫ");
+  };
+
+  /* Звук обычных кнопок */
+  document.addEventListener("click",function(e){
+    const b=e.target.closest("button");
+    if(b && !b.closest("#ui61nav") &&
+       !b.closest("#ui61settings")){
+      ui61Feedback("click");
+    }
+  });
+
+  /* Первое взаимодействие разблокирует AudioContext */
+  document.addEventListener("pointerdown",function(){
+    const ctx=audio();
+    if(ctx && ctx.state==="suspended")ctx.resume();
+  },{once:true});
+
+  saveUI();
+
+})();
+</script>
+
 </body>
 </html>
