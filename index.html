@@ -105,61 +105,6 @@ text-align:center;padding:25px
 .catcollection{font-size:42px;letter-spacing:5px;line-height:1.8}
 </style>
 
-/* ===== UNKNOWN PROTOCOL 7.0 ===== */
-#up7-hub{
-  position:fixed;right:14px;bottom:14px;z-index:9999;
-  padding:12px 16px;border:1px solid #00ff99;border-radius:14px;
-  background:rgba(0,15,12,.92);color:#00ff99;font-weight:900;
-  box-shadow:0 0 18px rgba(0,255,153,.25);cursor:pointer
-}
-.up7-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.up7-card{
-  padding:16px;border:1px solid rgba(0,255,153,.25);border-radius:16px;
-  background:rgba(0,20,16,.75);text-align:center;cursor:pointer;
-  transition:.2s
-}
-.up7-card:active{transform:scale(.97)}
-.up7-title{color:#00ff99;font-weight:900;font-size:20px;margin-bottom:12px}
-.up7-stat{
-  display:flex;justify-content:space-between;padding:9px 0;
-  border-bottom:1px solid rgba(255,255,255,.08)
-}
-.up7-list{display:flex;flex-direction:column;gap:8px}
-.up7-row{
-  display:grid;grid-template-columns:42px 1fr auto;gap:8px;
-  align-items:center;padding:12px;border-radius:13px;
-  background:rgba(255,255,255,.045)
-}
-.up7-rank{font-size:22px;text-align:center}
-.up7-me{border:1px solid #00ff99;box-shadow:0 0 12px rgba(0,255,153,.15)}
-.up7-muted{opacity:.55}
-.up7-input{
-  width:100%;box-sizing:border-box;padding:12px;margin:6px 0;
-  border-radius:12px;border:1px solid rgba(0,255,153,.3);
-  background:#050b0a;color:#fff
-}
-.up7-btn{
-  width:100%;padding:12px;margin-top:7px;border-radius:12px;
-  border:1px solid #00ff99;background:#062018;color:#00ff99;
-  font-weight:800
-}
-.up7-pill{
-  display:inline-block;padding:5px 9px;border-radius:20px;
-  background:rgba(0,255,153,.1);color:#00ff99;font-size:12px
-}
-.up7-chat{
-  height:260px;overflow:auto;padding:10px;border-radius:14px;
-  background:#020605;border:1px solid rgba(0,255,153,.15)
-}
-.up7-msg{margin:7px 0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.05)}
-.up7-msg b{color:#00ff99}
-.up7-bar{height:9px;border-radius:10px;background:#111;margin-top:6px;overflow:hidden}
-.up7-bar i{display:block;height:100%;background:#00ff99}
-@media(max-width:430px){
-  .up7-grid{grid-template-columns:1fr 1fr}
-  .up7-row{grid-template-columns:34px 1fr auto}
-}
-
 </style>
 </head>
 <body>
@@ -1273,42 +1218,10 @@ setInterval(()=>{
 setTimeout(update6,500);
 </script>
 
-<!-- ===== UNKNOWN PROTOCOL 7.0 HUB ===== -->
-<section id="up7" class="screen panel card" style="display:none">
-  <div class="up7-title">🌐 UNKNOWN WORLD 7.0</div>
-  <div class="up7-grid">
-    <button class="up7-card" onclick="up7World()">🗺️<br>МИР</button>
-    <button class="up7-card" onclick="up7Arcade()">🎮<br>АРКАДА</button>
-    <button class="up7-card" onclick="up7NPC()">👾<br>NPC</button>
-    <button class="up7-card" onclick="up7Chat()">💬<br>СИСТЕМА</button>
-    <button class="up7-card" onclick="up7Inventory()">🎒<br>ИНВЕНТАРЬ</button>
-    <button class="up7-card" onclick="up7Skills()">🌳<br>НАВЫКИ</button>
-    <button class="up7-card" onclick="up7Leaderboard()">🏆<br>ЛИДЕРЫ</button>
-    <button class="up7-card" onclick="up7Endings()">🎭<br>КОНЦОВКИ</button>
-  </div>
-  <button class="up7-btn" onclick="show('menu')">← НАЗАД</button>
-</section>
 
-<section id="up7sub" class="screen panel card" style="display:none">
-  <div id="up7content"></div>
-  <button class="up7-btn" onclick="show('up7')">← НАЗАД</button>
-</section>
-
-<button id="up7-hub" onclick="openUp7()">⚡ 7.0</button>
 
 <script>
-/* ===== 7.0 SCREEN SWITCH ===== */
-window.openUp7=function(){
-  document.querySelectorAll(".screen").forEach(function(el){
-    el.classList.remove("active");
-    el.style.display="none";
-  });
-  var el=document.getElementById("up7");
-  if(el){
-    el.classList.add("active");
-    el.style.display="block";
-  }
-};
+
 
 /* ===== UNKNOWN PROTOCOL 7.0 ENGINE ===== */
 (function(){
