@@ -106,6 +106,72 @@ text-align:center;padding:25px
 </style>
 
 </style>
+
+<style id="cozy-update-css">
+/* UNKNOWN COZY UPDATE 1.0 */
+.cozy-nav{
+  position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
+  width:min(94%,560px);display:flex;gap:7px;padding:8px;
+  background:rgba(12,16,30,.88);backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.10);border-radius:22px;
+  z-index:9999;box-shadow:0 12px 40px rgba(0,0,0,.35)
+}
+.cozy-nav button{
+  flex:1;border:0;border-radius:16px;padding:11px 5px;
+  background:rgba(255,255,255,.06);color:#fff;font-size:12px;
+  cursor:pointer;transition:.2s
+}
+.cozy-nav button:hover,.cozy-nav button.active{
+  background:rgba(120,100,255,.28);transform:translateY(-2px)
+}
+.cozy-panel{
+  display:none;position:fixed;inset:0;z-index:9998;
+  padding:70px 18px 100px;overflow:auto;
+  background:rgba(5,7,15,.96);backdrop-filter:blur(20px)
+}
+.cozy-panel.show{display:block}
+.cozy-box{
+  max-width:650px;margin:auto;padding:22px;
+  border-radius:24px;background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.09)
+}
+.cozy-title{font-size:27px;font-weight:800;margin-bottom:18px}
+.cozy-card{
+  margin:10px 0;padding:15px;border-radius:17px;
+  background:rgba(255,255,255,.045)
+}
+.cozy-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cozy-close{
+  border:0;border-radius:14px;padding:11px 16px;
+  background:rgba(255,255,255,.09);color:#fff;cursor:pointer
+}
+.leader-rank{
+  display:grid;grid-template-columns:45px 1fr auto;
+  align-items:center;gap:10px;padding:13px;
+  border-radius:15px;margin:7px 0;background:rgba(255,255,255,.045)
+}
+.leader-rank:nth-child(2){background:rgba(255,215,80,.10)}
+.leader-rank:nth-child(3){background:rgba(210,210,220,.08)}
+.leader-num{font-size:21px;font-weight:800}
+.music-btn{
+  width:100%;padding:14px;border:0;border-radius:16px;
+  background:rgba(120,100,255,.22);color:#fff;font-size:15px;cursor:pointer
+}
+.cozy-slider{width:100%;margin-top:12px}
+.cozy-toast{
+  position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);
+  background:#111827;color:#fff;padding:11px 17px;border-radius:14px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:10001;
+  box-shadow:0 8px 30px rgba(0,0,0,.4)
+}
+.cozy-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:500px){
+  .cozy-nav button{font-size:10px;padding:10px 3px}
+  .cozy-title{font-size:23px}
+}
+body{padding-bottom:82px}
+</style>
+
 </head>
 <body>
 
@@ -1561,5 +1627,215 @@ setTimeout(update6,500);
   save7();
 })();
 </script>
+
+<!-- UNKNOWN COZY UPDATE 1.0 -->
+<div class="cozy-panel" id="cozy-leaders">
+  <div class="cozy-box">
+    <div class="cozy-title">🏆 Таблица лидеров</div>
+    <div id="cozy-leader-list"></div>
+    <button class="cozy-close" onclick="cozyClose()">Закрыть</button>
+  </div>
+</div>
+
+<div class="cozy-panel" id="cozy-music">
+  <div class="cozy-box">
+    <div class="cozy-title">🎵 Музыка</div>
+    <div class="cozy-card">
+      <div class="cozy-row">
+        <span>Фоновая музыка</span>
+        <button class="cozy-close" id="music-toggle">Выкл.</button>
+      </div>
+      <input class="cozy-slider" id="music-volume" type="range" min="0" max="100" value="35">
+    </div>
+    <div class="cozy-card">Музыка запускается после первого нажатия — это ограничение браузера.</div>
+    <button class="cozy-close" onclick="cozyClose()">Закрыть</button>
+  </div>
+</div>
+
+<div class="cozy-panel" id="cozy-menu">
+  <div class="cozy-box">
+    <div class="cozy-title">⚙️ Настройки</div>
+    <div class="cozy-card">
+      <div class="cozy-row">
+        <span>🔊 Звуки интерфейса</span>
+        <button class="cozy-close" id="sound-toggle">Вкл.</button>
+      </div>
+    </div>
+    <div class="cozy-card">
+      <div class="cozy-row">
+        <span>📱 Вибрация</span>
+        <button class="cozy-close" id="vibe-toggle">Вкл.</button>
+      </div>
+    </div>
+    <button class="cozy-close" onclick="cozyClose()">Закрыть</button>
+  </div>
+</div>
+
+<div class="cozy-toast" id="cozy-toast"></div>
+
+<nav class="cozy-nav" id="cozy-nav">
+  <button onclick="cozyHome()">🏠<br>Главная</button>
+  <button onclick="cozyOpen('cozy-leaders');cozyLeaders()">🏆<br>Топ</button>
+  <button onclick="cozyOpen('cozy-music')">🎵<br>Музыка</button>
+  <button onclick="cozyOpen('cozy-menu')">⚙️<br>Настройки</button>
+</nav>
+
+
+<script id="cozy-update-js">
+(function(){
+"use strict";
+
+const KEY="unknown_cozy_settings";
+let cfg=JSON.parse(localStorage.getItem(KEY)||'{"music":false,"volume":35,"sound":true,"vibe":true}');
+
+function save(){localStorage.setItem(KEY,JSON.stringify(cfg));}
+
+window.cozyToast=function(t){
+  const e=document.getElementById("cozy-toast");
+  if(!e)return;
+  e.textContent=t;e.classList.add("show");
+  clearTimeout(window.__cozyToast);
+  window.__cozyToast=setTimeout(()=>e.classList.remove("show"),1800);
+};
+
+window.cozyOpen=function(id){
+  document.querySelectorAll(".cozy-panel").forEach(x=>x.classList.remove("show"));
+  const e=document.getElementById(id);
+  if(e)e.classList.add("show");
+};
+
+window.cozyClose=function(){
+  document.querySelectorAll(".cozy-panel").forEach(x=>x.classList.remove("show"));
+};
+
+window.cozyHome=function(){
+  cozyClose();
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+
+function updateButtons(){
+  const m=document.getElementById("music-toggle");
+  const s=document.getElementById("sound-toggle");
+  const v=document.getElementById("vibe-toggle");
+  if(m)m.textContent=cfg.music?"Вкл.":"Выкл.";
+  if(s)s.textContent=cfg.sound?"Вкл.":"Выкл.";
+  if(v)v.textContent=cfg.vibe?"Вкл.":"Выкл.";
+}
+
+window.cozyLeaders=function(){
+  const box=document.getElementById("cozy-leader-list");
+  if(!box)return;
+
+  let score=0;
+  try{
+    score=Number(localStorage.getItem("unknown_score")||0);
+  }catch(e){}
+
+  let players=JSON.parse(localStorage.getItem("unknown_leaderboard")||"[]");
+  if(score>0){
+    players.push({name:"Ты",score:score});
+  }
+
+  if(!players.length){
+    players=[
+      {name:"UNKNOWN",score:980},
+      {name:"VOID",score:850},
+      {name:"MATRIX",score:720},
+      {name:"GHOST",score:610},
+      {name:"PLAYER",score:500}
+    ];
+  }
+
+  players.sort((a,b)=>b.score-a.score);
+  players=players.slice(0,10);
+  localStorage.setItem("unknown_leaderboard",JSON.stringify(players));
+
+  box.innerHTML=players.map((p,i)=>{
+    const medal=["🥇","🥈","🥉"][i]||String(i+1);
+    return '<div class="leader-rank"><div class="leader-num">'+medal+
+      '</div><div><b>'+String(p.name).replace(/[<>&"]/g,"")+
+      '</b></div><strong>'+Number(p.score)+' XP</strong></div>';
+  }).join("");
+};
+
+document.addEventListener("DOMContentLoaded",function(){
+  updateButtons();
+
+  const mt=document.getElementById("music-toggle");
+  const mv=document.getElementById("music-volume");
+  const st=document.getElementById("sound-toggle");
+  const vt=document.getElementById("vibe-toggle");
+
+  if(mv)mv.value=cfg.volume;
+
+  if(mt)mt.onclick=function(){
+    cfg.music=!cfg.music;save();updateButtons();
+    if(cfg.music)startMusic();
+    else stopMusic();
+    cozyToast(cfg.music?"🎵 Музыка включена":"🔇 Музыка выключена");
+  };
+
+  if(mv)mv.oninput=function(){
+    cfg.volume=Number(mv.value);save();
+    if(window.__cozyGain)window.__cozyGain.gain.value=cfg.volume/1000;
+  };
+
+  if(st)st.onclick=function(){
+    cfg.sound=!cfg.sound;save();updateButtons();
+    cozyToast(cfg.sound?"🔊 Звуки включены":"🔇 Звуки выключены");
+  };
+
+  if(vt)vt.onclick=function(){
+    cfg.vibe=!cfg.vibe;save();updateButtons();
+    cozyToast(cfg.vibe?"📳 Вибрация включена":"Вибрация выключена");
+  };
+
+  document.addEventListener("click",function(e){
+    if(!cfg.sound)return;
+    const b=e.target.closest("button");
+    if(!b)return;
+    if(cfg.vibe && navigator.vibrate)navigator.vibrate(12);
+    clickSound();
+  });
+});
+
+let audio=null,osc=null,gain=null;
+
+function startMusic(){
+  try{
+    audio=audio||new (window.AudioContext||window.webkitAudioContext)();
+    if(osc) return;
+    osc=audio.createOscillator();
+    gain=audio.createGain();
+    osc.type="sine";
+    osc.frequency.value=110;
+    gain.gain.value=cfg.volume/1000;
+    osc.connect(gain).connect(audio.destination);
+    osc.start();
+    window.__cozyGain=gain;
+  }catch(e){}
+}
+
+function stopMusic(){
+  try{
+    if(osc){osc.stop();osc.disconnect();osc=null;}
+  }catch(e){}
+}
+
+function clickSound(){
+  try{
+    const a=audio||new (window.AudioContext||window.webkitAudioContext)();
+    const o=a.createOscillator(),g=a.createGain();
+    o.frequency.value=520;
+    g.gain.value=.025;
+    o.connect(g).connect(a.destination);
+    o.start();o.stop(a.currentTime+.045);
+    audio=a;
+  }catch(e){}
+}
+
+})();
+</script>
+
 </body>
 </html>
