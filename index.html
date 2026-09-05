@@ -172,6 +172,65 @@ text-align:center;padding:25px
 body{padding-bottom:82px}
 </style>
 
+
+<style id="progression-8-css">
+/* UNKNOWN PROGRESSION 8.0 */
+.progress8-panel{
+ position:fixed;inset:0;z-index:10000;display:none;
+ overflow:auto;padding:70px 16px 110px;
+ background:rgba(4,6,14,.97);backdrop-filter:blur(20px)
+}
+.progress8-panel.show{display:block}
+.progress8-box{
+ max-width:650px;margin:auto;padding:22px;
+ border:1px solid rgba(255,255,255,.1);
+ border-radius:25px;background:rgba(255,255,255,.055)
+}
+.progress8-title{font-size:26px;font-weight:800;margin-bottom:18px}
+.progress8-card{
+ padding:16px;margin:10px 0;border-radius:18px;
+ background:rgba(255,255,255,.055)
+}
+.progress8-row{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:12px
+}
+.progress8-btn{
+ width:100%;padding:13px;margin-top:9px;border:0;
+ border-radius:15px;background:rgba(120,100,255,.22);
+ color:white;font-size:14px;cursor:pointer
+}
+.progress8-close{
+ padding:11px 16px;border:0;border-radius:14px;
+ background:rgba(255,255,255,.09);color:white
+}
+.progress8-xp{
+ height:12px;border-radius:20px;
+ background:rgba(255,255,255,.08);overflow:hidden;margin-top:9px
+}
+.progress8-xp>div{
+ height:100%;width:0%;
+ background:linear-gradient(90deg,#6d5dfc,#9d8cff);
+ transition:width .5s
+}
+.progress8-ach{
+ display:flex;gap:12px;align-items:center;
+ padding:12px;border-radius:15px;
+ background:rgba(255,255,255,.04);margin:7px 0
+}
+.progress8-ach.locked{opacity:.38}
+.progress8-icon{font-size:25px}
+.progress8-theme{
+ padding:15px;border-radius:16px;
+ background:rgba(255,255,255,.045);margin:8px 0
+}
+.progress8-theme button{
+ margin-top:8px;padding:9px 13px;border:0;
+ border-radius:12px;background:rgba(255,255,255,.1);
+ color:white
+}
+</style>
+
 </head>
 <body>
 
@@ -1956,6 +2015,236 @@ function clickSound(){
       }
     },50);
   });
+
+})();
+</script>
+
+
+<!-- UNKNOWN PROGRESSION 8.0 -->
+<div class="progress8-panel" id="p8-profile">
+ <div class="progress8-box">
+  <div class="progress8-title">👤 Профиль</div>
+  <div class="progress8-card">
+   <div style="font-size:22px;font-weight:800" id="p8-name">UNKNOWN</div>
+   <div id="p8-rank">Новичок</div>
+  </div>
+  <div class="progress8-card">
+   <div class="progress8-row">
+    <span>⭐ Уровень</span><b id="p8-level">1</b>
+   </div>
+   <div class="progress8-xp"><div id="p8-xpbar"></div></div>
+   <small id="p8-xptxt">0 / 100 XP</small>
+  </div>
+  <div class="progress8-card">
+   <div class="progress8-row"><span>💰 Монеты</span><b id="p8-coins">0</b></div>
+  </div>
+  <button class="progress8-close" onclick="p8Close()">Закрыть</button>
+ </div>
+</div>
+
+<div class="progress8-panel" id="p8-achievements">
+ <div class="progress8-box">
+  <div class="progress8-title">🏆 Достижения</div>
+  <div id="p8-ach-list"></div>
+  <button class="progress8-close" onclick="p8Close()">Закрыть</button>
+ </div>
+</div>
+
+<div class="progress8-panel" id="p8-daily">
+ <div class="progress8-box">
+  <div class="progress8-title">📅 Задание дня</div>
+  <div class="progress8-card">
+   <div style="font-size:18px;font-weight:700">Пройти протокол</div>
+   <p>Заработай XP и получи награду.</p>
+   <div class="progress8-row">
+    <span>Награда</span><b>🪙 +50</b>
+   </div>
+   <button class="progress8-btn" id="p8-daily-btn">Получить награду</button>
+  </div>
+  <button class="progress8-close" onclick="p8Close()">Закрыть</button>
+ </div>
+</div>
+
+<div class="progress8-panel" id="p8-shop">
+ <div class="progress8-box">
+  <div class="progress8-title">🎨 Магазин тем</div>
+  <div class="progress8-card">💰 Баланс: <b id="p8-shop-coins">0</b></div>
+
+  <div class="progress8-theme">
+   🌌 <b>VOID</b><br><small>Тёмная атмосфера</small>
+   <button onclick="p8Theme('void',100)">100 🪙</button>
+  </div>
+
+  <div class="progress8-theme">
+   💜 <b>NEON</b><br><small>Неоновый интерфейс</small>
+   <button onclick="p8Theme('neon',150)">150 🪙</button>
+  </div>
+
+  <div class="progress8-theme">
+   🌿 <b>COZY</b><br><small>Спокойный режим</small>
+   <button onclick="p8Theme('cozy',200)">200 🪙</button>
+  </div>
+
+  <button class="progress8-close" onclick="p8Close()">Закрыть</button>
+ </div>
+</div>
+
+<div class="progress8-panel" id="p8-main">
+ <div class="progress8-box">
+  <div class="progress8-title">⚡ PROGRESSION 8.0</div>
+  <button class="progress8-btn" onclick="p8Open('p8-profile');p8Update()">👤 Профиль</button>
+  <button class="progress8-btn" onclick="p8Open('p8-achievements');p8Achievements()">🏆 Достижения</button>
+  <button class="progress8-btn" onclick="p8Open('p8-daily');p8Daily()">📅 Задание дня</button>
+  <button class="progress8-btn" onclick="p8Open('p8-shop');p8Update()">🎨 Магазин</button>
+  <button class="progress8-close" onclick="p8Close()">Закрыть</button>
+ </div>
+</div>
+
+<script id="progression-8-js">
+/* UNKNOWN PROGRESSION 8.0 ENGINE */
+(function(){
+"use strict";
+
+const KEY="unknown_progression_8";
+let data=JSON.parse(localStorage.getItem(KEY)||"null");
+
+if(!data){
+ data={
+  name:"UNKNOWN",
+  xp:0,
+  coins:0,
+  level:1,
+  daily:"",
+  theme:"default",
+  achievements:[]
+ };
+}
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(data));
+}
+
+window.p8Open=function(id){
+ document.querySelectorAll(".progress8-panel")
+  .forEach(x=>x.classList.remove("show"));
+ const e=document.getElementById(id);
+ if(e)e.classList.add("show");
+};
+
+window.p8Close=function(){
+ document.querySelectorAll(".progress8-panel")
+  .forEach(x=>x.classList.remove("show"));
+};
+
+function calculate(){
+ data.level=Math.max(1,Math.floor(data.xp/100)+1);
+}
+
+window.p8Update=function(){
+ calculate();
+ save();
+
+ const name=document.getElementById("p8-name");
+ const level=document.getElementById("p8-level");
+ const coins=document.getElementById("p8-coins");
+ const shop=document.getElementById("p8-shop-coins");
+ const bar=document.getElementById("p8-xpbar");
+ const txt=document.getElementById("p8-xptxt");
+
+ if(name)name.textContent=data.name;
+ if(level)level.textContent=data.level;
+ if(coins)coins.textContent=data.coins;
+ if(shop)shop.textContent=data.coins;
+
+ const current=data.xp%100;
+ if(bar)bar.style.width=current+"%";
+ if(txt)txt.textContent=current+" / 100 XP";
+};
+
+window.p8Achievements=function(){
+ const box=document.getElementById("p8-ach-list");
+ if(!box)return;
+
+ const list=[
+  ["🚀","Первый запуск","Запустить протокол"],
+  ["⭐","100 XP","Набрать 100 XP"],
+  ["💰","Коллекционер","Получить 100 монет"],
+  ["🏆","Ветеран","Достичь 5 уровня"],
+  ["🌌","UNKNOWN","Открыть неизвестное"]
+ ];
+
+ box.innerHTML=list.map((a,i)=>{
+  let unlocked=false;
+
+  if(i===0)unlocked=data.xp>0;
+  if(i===1)unlocked=data.xp>=100;
+  if(i===2)unlocked=data.coins>=100;
+  if(i===3)unlocked=data.level>=5;
+  if(i===4)unlocked=data.achievements.includes("unknown");
+
+  return '<div class="progress8-ach '+(unlocked?"":"locked")+
+   '"><span class="progress8-icon">'+a[0]+
+   '</span><div><b>'+a[1]+
+   '</b><br><small>'+a[2]+
+   '</small></div></div>';
+ }).join("");
+};
+
+window.p8Daily=function(){
+ const btn=document.getElementById("p8-daily-btn");
+ if(!btn)return;
+
+ const today=new Date().toISOString().slice(0,10);
+
+ if(data.daily===today){
+  btn.textContent="✅ Выполнено сегодня";
+  btn.disabled=true;
+  return;
+ }
+
+ btn.textContent="Получить награду";
+
+ btn.onclick=function(){
+  if(data.daily===today)return;
+
+  data.daily=today;
+  data.xp+=50;
+  data.coins+=50;
+  calculate();
+  save();
+  btn.textContent="✅ Награда получена";
+  if(window.cozyToast)cozyToast("🎁 +50 XP и +50 монет");
+  p8Update();
+ };
+};
+
+window.p8Theme=function(theme,cost){
+ if(data.theme===theme){
+  if(window.cozyToast)cozyToast("✅ Тема уже выбрана");
+  return;
+ }
+
+ if(data.coins<cost){
+  if(window.cozyToast)cozyToast("❌ Недостаточно монет");
+  return;
+ }
+
+ data.coins-=cost;
+ data.theme=theme;
+ save();
+ applyTheme();
+
+ if(window.cozyToast)cozyToast("🎨 Тема активирована");
+ p8Update();
+};
+
+function applyTheme(){
+ document.documentElement.dataset.p8theme=data.theme;
+}
+
+calculate();
+applyTheme();
+save();
 
 })();
 </script>
