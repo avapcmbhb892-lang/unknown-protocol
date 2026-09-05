@@ -231,6 +231,105 @@ body{padding-bottom:82px}
 }
 </style>
 
+
+<style id="unknown-world-9-css">
+/* UNKNOWN WORLD 9.0 */
+.u9-panel{
+ position:fixed;inset:0;z-index:10010;display:none;overflow:auto;
+ padding:60px 14px 105px;background:rgba(3,5,12,.98);
+ backdrop-filter:blur(22px)
+}
+.u9-panel.show{display:block}
+.u9-box{
+ width:min(680px,100%);margin:auto;padding:20px;
+ border-radius:26px;background:rgba(255,255,255,.055);
+ border:1px solid rgba(255,255,255,.1);
+ box-shadow:0 20px 70px rgba(0,0,0,.35)
+}
+.u9-title{font-size:27px;font-weight:900;margin-bottom:18px}
+.u9-sub{opacity:.65;margin-top:-10px;margin-bottom:18px}
+.u9-grid{
+ display:grid;grid-template-columns:repeat(2,1fr);gap:10px
+}
+.u9-card{
+ padding:17px;border-radius:19px;
+ background:rgba(255,255,255,.045);
+ border:1px solid rgba(255,255,255,.055);
+ margin:8px 0
+}
+.u9-btn{
+ width:100%;padding:14px;margin:6px 0;border:0;
+ border-radius:16px;background:rgba(110,95,255,.22);
+ color:#fff;font-size:14px;font-weight:700
+}
+.u9-btn:active{transform:scale(.98)}
+.u9-close{
+ padding:11px 16px;border:0;border-radius:14px;
+ background:rgba(255,255,255,.09);color:#fff
+}
+.u9-room{
+ min-height:105px;display:flex;flex-direction:column;
+ justify-content:space-between
+}
+.u9-room.locked{opacity:.4}
+.u9-room b{font-size:17px}
+.u9-stat{
+ display:flex;justify-content:space-between;
+ padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)
+}
+.u9-npc{
+ padding:16px;border-radius:18px;
+ background:linear-gradient(135deg,rgba(110,95,255,.16),rgba(0,0,0,.1));
+ margin:10px 0
+}
+.u9-npc-name{font-weight:900;font-size:18px}
+.u9-terminal{
+ background:#050807;border:1px solid rgba(100,255,150,.18);
+ color:#9dffba;border-radius:18px;padding:17px;
+ font-family:monospace;line-height:1.6
+}
+.u9-code{
+ font-size:30px;letter-spacing:10px;text-align:center;
+ padding:18px;margin:15px 0;border-radius:17px;
+ background:rgba(0,0,0,.35)
+}
+.u9-collection{
+ display:grid;grid-template-columns:repeat(3,1fr);gap:8px
+}
+.u9-item{
+ padding:15px 5px;text-align:center;border-radius:15px;
+ background:rgba(255,255,255,.045);font-size:12px
+}
+.u9-item span{display:block;font-size:28px;margin-bottom:5px}
+.u9-event{
+ text-align:center;padding:25px 15px;border-radius:22px;
+ background:linear-gradient(135deg,rgba(255,70,70,.12),rgba(80,60,180,.13));
+ border:1px solid rgba(255,255,255,.08)
+}
+.u9-danger{font-size:28px;font-weight:900}
+.u9-leader{
+ display:grid;grid-template-columns:42px 1fr auto;
+ gap:9px;align-items:center;padding:13px;
+ border-radius:15px;background:rgba(255,255,255,.045);
+ margin:7px 0
+}
+.u9-toast{
+ position:fixed;top:18px;left:50%;
+ transform:translate(-50%,-20px);
+ opacity:0;z-index:11000;padding:12px 18px;
+ border-radius:15px;background:#111827;color:#fff;
+ transition:.25s;pointer-events:none
+}
+.u9-toast.show{
+ opacity:1;transform:translate(-50%,0)
+}
+@media(max-width:480px){
+ .u9-grid{grid-template-columns:1fr 1fr}
+ .u9-title{font-size:23px}
+ .u9-box{padding:16px}
+}
+</style>
+
 </head>
 <body>
 
@@ -2245,6 +2344,434 @@ function applyTheme(){
 calculate();
 applyTheme();
 save();
+
+})();
+</script>
+
+
+<!-- UNKNOWN WORLD 9.0 -->
+<div class="u9-toast" id="u9-toast"></div>
+
+<div class="u9-panel" id="u9-main">
+ <div class="u9-box">
+  <div class="u9-title">🌍 UNKNOWN WORLD</div>
+  <div class="u9-sub">Протокол расширен. Доступны новые зоны.</div>
+
+  <div class="u9-grid">
+   <button class="u9-btn" onclick="u9Open('u9-map')">🗺️ Мир</button>
+   <button class="u9-btn" onclick="u9Open('u9-arcade')">🎮 Аркада</button>
+   <button class="u9-btn" onclick="u9Open('u9-npc')">🤖 NPC</button>
+   <button class="u9-btn" onclick="u9Open('u9-collection')">🐱 Коллекция</button>
+   <button class="u9-btn" onclick="u9Open('u9-event')">⚠️ Событие</button>
+   <button class="u9-btn" onclick="u9Open('u9-code')">🧩 Code Breaker</button>
+   <button class="u9-btn" onclick="u9Open('u9-leaderboard');u9Leaderboard()">🏆 Рейтинг</button>
+   <button class="u9-btn" onclick="u9Open('u9-endings')">🏁 Концовки</button>
+  </div>
+
+  <div class="u9-card">
+   <div class="u9-stat"><span>⭐ Уровень</span><b id="u9-level">1</b></div>
+   <div class="u9-stat"><span>💰 Монеты</span><b id="u9-coins">0</b></div>
+   <div class="u9-stat"><span>🎮 Победы</span><b id="u9-wins">0</b></div>
+   <div class="u9-stat"><span>🔐 Секреты</span><b id="u9-secrets">0</b></div>
+  </div>
+
+  <button class="u9-close" onclick="u9Close()">Закрыть</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-map">
+ <div class="u9-box">
+  <div class="u9-title">🗺️ Карта UNKNOWN</div>
+  <div class="u9-grid">
+   <div class="u9-card u9-room"><b>🖥️ Серверная</b><small>Система активна</small></div>
+   <div class="u9-card u9-room"><b>🧪 Лаборатория</b><small>Исследования</small></div>
+   <div class="u9-card u9-room"><b>📁 Архив</b><small>Найди секрет</small></div>
+   <div class="u9-card u9-room"><b>🎮 Аркада</b><small>Мини-игры</small></div>
+   <div class="u9-card u9-room locked"><b>🌑 VOID</b><small>🔒 Требуется уровень 10</small></div>
+   <div class="u9-card u9-room locked"><b>❓ ???</b><small>🔒 Неизвестно</small></div>
+  </div>
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-arcade">
+ <div class="u9-box">
+  <div class="u9-title">🎮 ARCADE</div>
+  <div class="u9-card">
+   <b>⚡ Reaction</b>
+   <p>Нажми кнопку и получи награду.</p>
+   <button class="u9-btn" onclick="u9Arcade('reaction')">Запустить</button>
+  </div>
+  <div class="u9-card">
+   <b>🔢 Guess Number</b>
+   <p>Угадай число от 1 до 10.</p>
+   <button class="u9-btn" onclick="u9Arcade('guess')">Запустить</button>
+  </div>
+  <div class="u9-card">
+   <b>🔍 Find Symbol</b>
+   <p>Найди правильный символ.</p>
+   <button class="u9-btn" onclick="u9Arcade('symbol')">Запустить</button>
+  </div>
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-npc">
+ <div class="u9-box">
+  <div class="u9-title">🤖 SYSTEM NPC</div>
+
+  <div class="u9-npc">
+   <div class="u9-npc-name">UNKNOWN AI</div>
+   <p id="u9-dialog">Ты действительно думаешь, что знаешь, что находится внутри протокола?</p>
+   <button class="u9-btn" onclick="u9Talk(1)">Исследовать</button>
+   <button class="u9-btn" onclick="u9Talk(2)">Спросить о VOID</button>
+   <button class="u9-btn" onclick="u9Talk(3)">Уйти</button>
+  </div>
+
+  <div class="u9-terminal">
+   SYSTEM: ONLINE<br>
+   SIGNAL: UNKNOWN<br>
+   STATUS: WATCHING...
+  </div>
+
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-collection">
+ <div class="u9-box">
+  <div class="u9-title">🐱 КОЛЛЕКЦИЯ</div>
+  <div class="u9-sub">Найдено: <b id="u9-col-count">0</b>/12</div>
+  <div class="u9-collection" id="u9-collection-list"></div>
+  <button class="u9-btn" onclick="u9FindItem()">🔎 Искать предмет</button>
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-event">
+ <div class="u9-box">
+  <div class="u9-title">⚠️ UNKNOWN EVENT</div>
+  <div class="u9-event">
+   <div class="u9-danger">📡 SIGNAL DETECTED</div>
+   <p id="u9-event-text">Система обнаружила неизвестный сигнал.</p>
+   <button class="u9-btn" onclick="u9Event('research')">🔬 Исследовать</button>
+   <button class="u9-btn" onclick="u9Event('ignore')">🚪 Игнорировать</button>
+  </div>
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-code">
+ <div class="u9-box">
+  <div class="u9-title">🧩 CODE BREAKER</div>
+  <div class="u9-sub">Введи код из трёх цифр.</div>
+  <div class="u9-code" id="u9-code-display">???</div>
+  <input id="u9-code-input" inputmode="numeric" maxlength="3"
+   style="width:100%;box-sizing:border-box;padding:15px;border-radius:15px;border:0;background:#111827;color:#fff;font-size:22px;text-align:center">
+  <button class="u9-btn" onclick="u9CheckCode()">Проверить</button>
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-leaderboard">
+ <div class="u9-box">
+  <div class="u9-title">🏆 WORLD RANK</div>
+  <div id="u9-leader-list"></div>
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<div class="u9-panel" id="u9-endings">
+ <div class="u9-box">
+  <div class="u9-title">🏁 КОНЦОВКИ</div>
+  <div class="u9-card">
+   <div class="u9-stat"><span>🟢 GOOD</span><b>???</b></div>
+   <div class="u9-stat"><span>🔴 CORRUPTED</span><b>???</b></div>
+   <div class="u9-stat"><span>🟣 VOID</span><b>???</b></div>
+   <div class="u9-stat"><span>🟡 SECRET</span><b id="u9-secret-ending">🔒</b></div>
+   <div class="u9-stat"><span>⚫ UNKNOWN</span><b>???</b></div>
+   <div class="u9-stat"><span>👁️ TRUE</span><b>???</b></div>
+  </div>
+  <p>Продолжай исследование, чтобы открыть неизвестное.</p>
+  <button class="u9-close" onclick="u9Close()">Назад</button>
+ </div>
+</div>
+
+<button id="u9-world-button"
+ style="position:fixed;right:16px;bottom:92px;z-index:9997;
+ border:0;border-radius:18px;padding:13px 15px;
+ background:rgba(110,95,255,.25);color:white;font-size:13px;
+ box-shadow:0 8px 25px rgba(0,0,0,.3)"
+ onclick="u9Open('u9-main')">🌍 WORLD</button>
+
+<script id="unknown-world-9-js">
+/* UNKNOWN WORLD 9.0 ENGINE */
+(function(){
+"use strict";
+
+const KEY="unknown_world_9";
+let d=JSON.parse(localStorage.getItem(KEY)||"null");
+
+if(!d){
+ d={
+  level:1,
+  coins:0,
+  wins:0,
+  secrets:0,
+  items:[],
+  endings:[],
+  events:0,
+  codes:0
+ };
+}
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(d));
+}
+
+function toast(text){
+ const e=document.getElementById("u9-toast");
+ if(!e)return;
+ e.textContent=text;
+ e.classList.add("show");
+ clearTimeout(window.__u9toast);
+ window.__u9toast=setTimeout(
+  ()=>e.classList.remove("show"),1800
+ );
+ if(navigator.vibrate)navigator.vibrate(12);
+}
+
+function update(){
+ const a={
+  "u9-level":d.level,
+  "u9-coins":d.coins,
+  "u9-wins":d.wins,
+  "u9-secrets":d.secrets
+ };
+
+ Object.keys(a).forEach(id=>{
+  const e=document.getElementById(id);
+  if(e)e.textContent=a[id];
+ });
+
+ const c=document.getElementById("u9-col-count");
+ if(c)c.textContent=d.items.length;
+}
+
+window.u9Open=function(id){
+ document.querySelectorAll(".u9-panel")
+  .forEach(x=>x.classList.remove("show"));
+ const e=document.getElementById(id);
+ if(e)e.classList.add("show");
+ update();
+
+ if(id==="u9-collection")u9RenderCollection();
+ if(id==="u9-code")u9NewCode();
+};
+
+window.u9Close=function(){
+ document.querySelectorAll(".u9-panel")
+  .forEach(x=>x.classList.remove("show"));
+};
+
+window.u9Talk=function(n){
+ const e=document.getElementById("u9-dialog");
+ if(!e)return;
+
+ const messages=[
+  "UNKNOWN AI: Хорошо. Но некоторые двери лучше не открывать.",
+  "UNKNOWN AI: VOID не является комнатой. Это состояние системы.",
+  "UNKNOWN AI: Уходи. Я всё равно буду помнить этот разговор."
+ ];
+
+ e.textContent=messages[n-1]||messages[0];
+
+ if(n===2){
+  d.secrets++;
+  save();
+  toast("👁️ Получен секрет");
+ }
+
+ update();
+};
+
+window.u9Arcade=function(type){
+ let reward=0;
+
+ if(type==="reaction"){
+  const start=performance.now();
+  alert("Приготовься! Нажми OK и сразу нажми появившуюся кнопку.");
+  const t=performance.now()-start;
+  reward=Math.max(5,Math.min(50,Math.floor(50-t/100)));
+  d.wins++;
+ }else if(type==="guess"){
+  const answer=Math.floor(Math.random()*10)+1;
+  const guess=Number(prompt("Угадай число от 1 до 10"));
+  if(guess===answer){
+   reward=40;
+   d.wins++;
+   toast("🎯 Верно!");
+  }else{
+   toast("❌ Было число "+answer);
+  }
+ }else{
+  const symbols=["◆","◇","○","△"];
+  const target=symbols[Math.floor(Math.random()*symbols.length)];
+  const answer=prompt(
+   "Какой символ нужно найти?
+"+symbols.join("  ")
+  );
+  if(answer===target){
+   reward=30;
+   d.wins++;
+   toast("🔍 Найдено!");
+  }else{
+   toast("❌ Не найдено");
+  }
+ }
+
+ if(reward){
+  d.coins+=reward;
+  if(d.wins%5===0)d.level++;
+  save();
+  toast("🎁 +"+reward+" монет");
+ }
+
+ update();
+};
+
+const items=[
+ ["🐱","UNKNOWN CAT"],
+ ["🛰️","SIGNAL"],
+ ["💿","DATA DISC"],
+ ["🔑","VOID KEY"],
+ ["👁️","WATCHER"],
+ ["💎","UNKNOWN CORE"],
+ ["📼","OLD TAPE"],
+ ["🧪","LAB SAMPLE"],
+ ["🖥️","BROKEN CHIP"],
+ ["📡","RED SIGNAL"],
+ ["🕳️","VOID FRAGMENT"],
+ ["❓","UNKNOWN"]
+];
+
+window.u9FindItem=function(){
+ const available=items.filter(x=>!d.items.includes(x[1]));
+
+ if(!available.length){
+  toast("🏆 Коллекция полностью собрана");
+  return;
+ }
+
+ const item=available[
+  Math.floor(Math.random()*available.length)
+ ];
+
+ d.items.push(item[1]);
+ d.coins+=15;
+ d.secrets++;
+ save();
+ u9RenderCollection();
+ update();
+ toast("🎁 Найдено: "+item[1]+" • +15 🪙");
+};
+
+function u9RenderCollection(){
+ const box=document.getElementById("u9-collection-list");
+ if(!box)return;
+
+ box.innerHTML=items.map(x=>{
+  const found=d.items.includes(x[1]);
+  return '<div class="u9-item" style="opacity:'+
+   (found?"1":".3")+'"><span>'+
+   (found?x[0]:"?")+
+   '</span>'+(found?x[1]:"UNKNOWN")+
+   '</div>';
+ }).join("");
+}
+
+let secretCode="";
+
+function u9NewCode(){
+ secretCode=String(Math.floor(100+Math.random()*900));
+ const e=document.getElementById("u9-code-display");
+ if(e)e.textContent="???";
+ const input=document.getElementById("u9-code-input");
+ if(input)input.value="";
+}
+
+window.u9CheckCode=function(){
+ const input=document.getElementById("u9-code-input");
+ if(!input)return;
+
+ if(input.value===secretCode){
+  d.codes++;
+  d.secrets++;
+  d.coins+=100;
+  d.level++;
+  save();
+  toast("🔓 CODE ACCEPTED • +100 🪙");
+  input.value="";
+  u9NewCode();
+  update();
+ }else{
+  toast("❌ ACCESS DENIED");
+  input.value="";
+ }
+};
+
+window.u9Event=function(type){
+ const text=document.getElementById("u9-event-text");
+
+ if(type==="research"){
+  d.events++;
+  d.coins+=30;
+  d.secrets++;
+
+  if(text)
+   text.textContent="Ты исследовал сигнал. Он исчез... но оставил координаты.";
+
+  toast("📡 +30 🪙 • найден секрет");
+ }else{
+  d.events++;
+
+  if(text)
+   text.textContent="Ты проигнорировал сигнал. Через несколько секунд он исчез.";
+
+  toast("🚪 Сигнал потерян");
+ }
+
+ save();
+ update();
+};
+
+window.u9Leaderboard=function(){
+ const box=document.getElementById("u9-leader-list");
+ if(!box)return;
+
+ let list=[
+  ["UNKNOWN",9800],
+  ["VOID",7650],
+  ["GHOST",6410],
+  ["MATRIX",5320],
+  ["WATCHER",4200]
+ ];
+
+ const yours=d.coins+d.wins*50+d.secrets*100;
+
+ list.push(["YOU",yours]);
+ list.sort((a,b)=>b[1]-a[1]);
+
+ box.innerHTML=list.map((x,i)=>{
+  const medal=["🥇","🥈","🥉"][i]||"#"+(i+1);
+  return '<div class="u9-leader"><b>'+
+   medal+'</b><span>'+x[0]+
+   '</span><strong>'+x[1]+'</strong></div>';
+ }).join("");
+};
+
+save();
+update();
 
 })();
 </script>
