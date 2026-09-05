@@ -104,6 +104,62 @@ text-align:center;padding:25px
 .symbols{font-size:42px;letter-spacing:10px;text-align:center;padding:20px}
 .catcollection{font-size:42px;letter-spacing:5px;line-height:1.8}
 </style>
+
+/* ===== UNKNOWN PROTOCOL 7.0 ===== */
+#up7-hub{
+  position:fixed;right:14px;bottom:14px;z-index:9999;
+  padding:12px 16px;border:1px solid #00ff99;border-radius:14px;
+  background:rgba(0,15,12,.92);color:#00ff99;font-weight:900;
+  box-shadow:0 0 18px rgba(0,255,153,.25);cursor:pointer
+}
+.up7-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.up7-card{
+  padding:16px;border:1px solid rgba(0,255,153,.25);border-radius:16px;
+  background:rgba(0,20,16,.75);text-align:center;cursor:pointer;
+  transition:.2s
+}
+.up7-card:active{transform:scale(.97)}
+.up7-title{color:#00ff99;font-weight:900;font-size:20px;margin-bottom:12px}
+.up7-stat{
+  display:flex;justify-content:space-between;padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.08)
+}
+.up7-list{display:flex;flex-direction:column;gap:8px}
+.up7-row{
+  display:grid;grid-template-columns:42px 1fr auto;gap:8px;
+  align-items:center;padding:12px;border-radius:13px;
+  background:rgba(255,255,255,.045)
+}
+.up7-rank{font-size:22px;text-align:center}
+.up7-me{border:1px solid #00ff99;box-shadow:0 0 12px rgba(0,255,153,.15)}
+.up7-muted{opacity:.55}
+.up7-input{
+  width:100%;box-sizing:border-box;padding:12px;margin:6px 0;
+  border-radius:12px;border:1px solid rgba(0,255,153,.3);
+  background:#050b0a;color:#fff
+}
+.up7-btn{
+  width:100%;padding:12px;margin-top:7px;border-radius:12px;
+  border:1px solid #00ff99;background:#062018;color:#00ff99;
+  font-weight:800
+}
+.up7-pill{
+  display:inline-block;padding:5px 9px;border-radius:20px;
+  background:rgba(0,255,153,.1);color:#00ff99;font-size:12px
+}
+.up7-chat{
+  height:260px;overflow:auto;padding:10px;border-radius:14px;
+  background:#020605;border:1px solid rgba(0,255,153,.15)
+}
+.up7-msg{margin:7px 0;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.05)}
+.up7-msg b{color:#00ff99}
+.up7-bar{height:9px;border-radius:10px;background:#111;margin-top:6px;overflow:hidden}
+.up7-bar i{display:block;height:100%;background:#00ff99}
+@media(max-width:430px){
+  .up7-grid{grid-template-columns:1fr 1fr}
+  .up7-row{grid-template-columns:34px 1fr auto}
+}
+
 </style>
 </head>
 <body>
@@ -1215,6 +1271,369 @@ setInterval(()=>{
 },1000);
 
 setTimeout(update6,500);
+</script>
+
+<!-- ===== UNKNOWN PROTOCOL 7.0 HUB ===== -->
+<section id="up7" class="screen panel card" style="display:none">
+  <div class="up7-title">🌐 UNKNOWN WORLD 7.0</div>
+  <div class="up7-grid">
+    <button class="up7-card" onclick="up7World()">🗺️<br>МИР</button>
+    <button class="up7-card" onclick="up7Arcade()">🎮<br>АРКАДА</button>
+    <button class="up7-card" onclick="up7NPC()">👾<br>NPC</button>
+    <button class="up7-card" onclick="up7Chat()">💬<br>СИСТЕМА</button>
+    <button class="up7-card" onclick="up7Inventory()">🎒<br>ИНВЕНТАРЬ</button>
+    <button class="up7-card" onclick="up7Skills()">🌳<br>НАВЫКИ</button>
+    <button class="up7-card" onclick="up7Leaderboard()">🏆<br>ЛИДЕРЫ</button>
+    <button class="up7-card" onclick="up7Endings()">🎭<br>КОНЦОВКИ</button>
+  </div>
+  <button class="up7-btn" onclick="show('menu')">← НАЗАД</button>
+</section>
+
+<section id="up7sub" class="screen panel card" style="display:none">
+  <div id="up7content"></div>
+  <button class="up7-btn" onclick="show('up7')">← НАЗАД</button>
+</section>
+
+<button id="up7-hub" onclick="show('up7')">⚡ 7.0</button>
+
+<script>
+/* ===== UNKNOWN PROTOCOL 7.0 ENGINE ===== */
+(function(){
+  data.coins = data.coins || 0;
+  data.chaos = data.chaos || 0;
+  data.inventory = data.inventory || [];
+  data.skills = data.skills || {int:0,speed:0,detect:0,luck:0,chaos:0};
+  data.world = data.world || [];
+  data.npcSeen = data.npcSeen || [];
+  data.endings = data.endings || [];
+  data.arcadeWins = data.arcadeWins || 0;
+  data.totalClicks = data.totalClicks || 0;
+  data.playerName = data.playerName || new URLSearchParams(location.search).get('name') || 'UNKNOWN';
+
+  const NPCS = {
+    SYSTEM:["Сигнал получен.","Ты опять здесь.","Я наблюдаю за прогрессом.","Не все двери должны быть открыты."],
+    UNKNOWN:["Ты ищешь ответы не там.","Кто сказал, что ты игрок?","UNKNOWN помнит всё."],
+    "404":["Страница не найдена. Но я нашёл тебя.","404 говорит: попробуй ещё раз.","Здесь ничего нет. Наверное."],
+    CAT:["мяу.","🐈 Доступ разрешён.","Кот одобряет твой прогресс.","мррр..."],
+    "ADMIN?":["У тебя нет такого доступа.","ADMIN? Кто сказал, что я настоящий?","Система не может подтвердить моё существование."]
+  };
+
+  function save7(){
+    try{ localStorage.setItem("unknown4",JSON.stringify(data)); }catch(e){}
+    if(typeof save==="function") try{save()}catch(e){}
+  }
+
+  function up7Render(x){
+    document.getElementById("up7content").innerHTML=x;
+    show("up7sub");
+  }
+
+  window.up7World=function(){
+    const loc=[
+      ["🧬","UNKNOWN","Центральная зона"],
+      ["🧪","LAB","Экспериментальный сектор"],
+      ["📁","ARCHIVE","Старые данные"],
+      ["🎮","ARCADE","Мини-игры"],
+      ["🌑","VOID","Нестабильная зона"],
+      ["🚪","ROOM 404","Комната, которой нет"]
+    ];
+    up7Render(`<div class="up7-title">🗺️ UNKNOWN WORLD</div>
+      <div class="up7-grid">${loc.map(a=>`
+      <button class="up7-card" onclick="up7Visit('${a[1]}')">${a[0]}<br><b>${a[1]}</b><br><small>${a[2]}</small></button>`).join("")}</div>`);
+  };
+
+  window.up7Visit=function(name){
+    data.world.push(name);
+    data.world=[...new Set(data.world)];
+    data.coins+=5;
+    data.chaos=Math.min(100,data.chaos+2);
+    if(name==="VOID" && !data.inventory.includes("💎 VOID CRYSTAL")){
+      data.inventory.push("💎 VOID CRYSTAL");
+      toast("🌑 VOID CRYSTAL получен");
+    }
+    if(name==="ROOM 404" && !data.inventory.includes("📟 OLD TERMINAL")){
+      data.inventory.push("📟 OLD TERMINAL");
+      toast("📟 Найден старый терминал");
+    }
+    save7();
+    if(typeof updateUI==="function") try{updateUI()}catch(e){}
+    up7Render(`<div class="up7-title">${name}</div>
+      <p>Сектор исследован.</p>
+      <div class="up7-stat"><span>Исследовано</span><b>${data.world.length}/6</b></div>
+      <div class="up7-stat"><span>UNKNOWN COINS</span><b>+5</b></div>
+      <div class="up7-stat"><span>CHAOS</span><b>${data.chaos}%</b></div>
+      <button class="up7-btn" onclick="up7World()">← КАРТА</button>`);
+  };
+
+  window.up7NPC=function(){
+    up7Render(`<div class="up7-title">👾 NPC TERMINAL</div>
+      <div class="up7-grid">${Object.keys(NPCS).map(n=>`
+      <button class="up7-card" onclick="up7Talk('${n}')">👾<br>${n}</button>`).join("")}</div>`);
+  };
+
+  window.up7Talk=function(n){
+    const arr=NPCS[n], msg=arr[Math.floor(Math.random()*arr.length)];
+    data.npcSeen.push(n);
+    data.npcSeen=[...new Set(data.npcSeen)];
+    data.coins+=3;
+    save7();
+    up7Render(`<div class="up7-title">👾 ${n}</div>
+      <div class="up7-msg"><b>${n}:</b> ${msg}</div>
+      <span class="up7-pill">Встреч: ${data.npcSeen.length}</span>
+      <button class="up7-btn" onclick="up7NPC()">ДРУГОЙ NPC</button>`);
+  };
+
+  window.up7Chat=function(){
+    up7Render(`<div class="up7-title">💬 SYSTEM CHAT</div>
+      <div id="up7chat" class="up7-chat"><div class="up7-msg"><b>SYSTEM:</b> Канал открыт.</div></div>
+      <input id="up7input" class="up7-input" placeholder="Напиши сообщение..." maxlength="100">
+      <button class="up7-btn" onclick="up7Send()">SEND</button>`);
+  };
+
+  window.up7Send=function(){
+    const i=document.getElementById("up7input"), box=document.getElementById("up7chat");
+    if(!i || !i.value.trim()) return;
+    const q=i.value.trim(), l=q.toLowerCase();
+    let r="Система не распознала запрос.";
+    if(l.includes("привет")) r="Сигнал получен.";
+    else if(l.includes("кто ты")) r="Лучше спроси, кто ты.";
+    else if(l.includes("кот")) r="🐈 Доступ разрешён.";
+    else if(l.includes("404")) r="ROOM 404 существует. Возможно.";
+    else if(l.includes("секрет")) r="Ищи места, которых нет на карте.";
+    else if(l.includes("matrix")) r="01010100 01010010 01010101 01000101";
+    else if(l.includes("хаос")) r="CHAOS сейчас: "+data.chaos+"%.";
+    else if(l.includes("кто я")) r="Ты — UNKNOWN в этой системе.";
+    box.innerHTML+=`<div class="up7-msg"><b>YOU:</b> ${q}</div><div class="up7-msg"><b>SYSTEM:</b> ${r}</div>`;
+    box.scrollTop=box.scrollHeight;
+    i.value="";
+    data.chaos=Math.min(100,data.chaos+1);
+    save7();
+  };
+
+  window.up7Inventory=function(){
+    const items=data.inventory.length?data.inventory:["Пока пусто"];
+    up7Render(`<div class="up7-title">🎒 INVENTORY</div>
+      <div class="up7-list">${items.map((x,i)=>`<div class="up7-card">${x}<br><small>SLOT ${i+1}</small></div>`).join("")}</div>
+      <div class="up7-stat"><span>UNKNOWN COINS</span><b>${data.coins}</b></div>`);
+  };
+
+  const SK=[
+    ["int","🧠 INTELLIGENCE"],["speed","⚡ SPEED"],
+    ["detect","🔎 DETECTION"],["luck","🍀 LUCK"],["chaos","🌀 CHAOS"]
+  ];
+
+  window.up7Skills=function(){
+    up7Render(`<div class="up7-title">🌳 SKILL TREE</div>
+      ${SK.map(a=>`<div class="up7-card" style="margin:7px 0">
+        <b>${a[1]}</b><br>Уровень: ${data.skills[a[0]]}
+        <button class="up7-btn" onclick="up7Skill('${a[0]}')">⬆ UPGRADE — 20 COINS</button>
+      </div>`).join("")}`);
+  };
+
+  window.up7Skill=function(k){
+    if(data.coins<20){toast("❌ Нужно 20 UNKNOWN COINS");return}
+    data.coins-=20;
+    data.skills[k]++;
+    data.chaos=Math.min(100,data.chaos+(k==="chaos"?5:1));
+    save7();
+    up7Skills();
+  };
+
+  window.up7Arcade=function(){
+    const games=[
+      ["⚡","REACTION","Нажми кнопку как можно быстрее"],
+      ["🧠","MEMORY","Запомни последовательность"],
+      ["🔢","GUESS","Угадай число"],
+      ["🔎","FIND","Найди правильный символ"],
+      ["➗","MATH BLITZ","Реши пример"],
+      ["🕵️","DETECTIVE","Раскрой мини-дело"]
+    ];
+    up7Render(`<div class="up7-title">🎮 ARCADE</div>
+      <div class="up7-grid">${games.map(g=>`<button class="up7-card" onclick="up7Game('${g[1]}')">${g[0]}<br><b>${g[1]}</b><br><small>${g[2]}</small></button>`).join("")}</div>`);
+  };
+
+  window.up7Game=function(type){
+    if(type==="REACTION"){
+      up7Render(`<div class="up7-title">⚡ REACTION</div>
+        <p>Нажми кнопку как можно быстрее.</p>
+        <button id="reaction7" class="up7-btn" onclick="up7Win()">⚡ НАЖАТЬ</button>`);
+      setTimeout(()=>{const b=document.getElementById("reaction7");if(b)b.textContent="🔥 СЕЙЧАС!"},700+Math.random()*1800);
+      return;
+    }
+
+    if(type==="GUESS"){
+      const n=Math.floor(Math.random()*10)+1;
+      up7Render(`<div class="up7-title">🔢 GUESS NUMBER</div>
+        <p>Число от 1 до 10.</p>
+        <input id="g7" class="up7-input" type="number" min="1" max="10">
+        <button class="up7-btn" onclick="up7Guess(${n})">ПРОВЕРИТЬ</button>`);
+      return;
+    }
+
+    if(type==="MATH BLITZ"){
+      const a=Math.floor(Math.random()*20)+1,b=Math.floor(Math.random()*20)+1;
+      up7Render(`<div class="up7-title">➗ MATH BLITZ</div>
+        <h2>${a} + ${b} = ?</h2>
+        <input id="m7" class="up7-input" type="number">
+        <button class="up7-btn" onclick="up7Math(${a+b})">ОТВЕТИТЬ</button>`);
+      return;
+    }
+
+    if(type==="FIND"){
+      const good=["◆","●","▲","■"][Math.floor(Math.random()*4)];
+      const arr=[good,"◆","●","▲","■"].sort(()=>Math.random()-.5);
+      up7Render(`<div class="up7-title">🔎 FIND SYMBOL</div><p>Найди: <b>${good}</b></p>
+        <div class="up7-grid">${arr.map(x=>`<button class="up7-card" onclick="up7Find('${x}','${good}')">${x}</button>`).join("")}</div>`);
+      return;
+    }
+
+    if(type==="MEMORY"){
+      const seq=Array.from({length:4},()=>["▲","●","◆","■"][Math.floor(Math.random()*4)]);
+      up7Render(`<div class="up7-title">🧠 MEMORY</div><h2 id="mem7">${seq.join(" ")}</h2>
+        <p>Запомни последовательность...</p>`);
+      setTimeout(()=>{
+        const el=document.getElementById("mem7");
+        if(el) el.innerHTML=`<input id="memin7" class="up7-input" placeholder="Например: ▲ ● ◆ ■">
+          <button class="up7-btn" onclick="up7Memory('${seq.join(" ")}')">ПРОВЕРИТЬ</button>`;
+      },1800);
+      return;
+    }
+
+    const cases=[
+      ["🕵️ Дело #404","Кто оставил сообщение?","SYSTEM","CAT","UNKNOWN",2],
+      ["🕵️ Дело #007","Кто был в ARCHIVE?","404","SYSTEM","ADMIN?",0],
+      ["🕵️ Дело #666","Кто знает секрет VOID?","CAT","UNKNOWN","404",1]
+    ];
+    const c=cases[Math.floor(Math.random()*cases.length)];
+    up7Render(`<div class="up7-title">${c[0]}</div><p>${c[1]}</p>
+      <div class="up7-grid">${c.slice(2,5).map((x,i)=>`<button class="up7-card" onclick="up7Detect(${i},${c[5]})">${x}</button>`).join("")}</div>`);
+  };
+
+  window.up7Win=function(){
+    data.arcadeWins++;
+    data.coins+=25;
+    data.chaos=Math.min(100,data.chaos+3);
+    save7(); toast("🏆 +25 COINS");
+    up7Arcade();
+  };
+
+  window.up7Guess=function(n){
+    const v=Number(document.getElementById("g7").value);
+    v===n?up7Win():(toast("❌ Неверно"),data.chaos=Math.min(100,data.chaos+2),save7());
+  };
+  window.up7Math=function(n){
+    const v=Number(document.getElementById("m7").value);
+    v===n?up7Win():(toast("❌ Неверно"),data.chaos=Math.min(100,data.chaos+2),save7());
+  };
+  window.up7Find=function(x,g){x===g?up7Win():(toast("❌ Не тот символ"),data.chaos=Math.min(100,data.chaos+2),save7())};
+  window.up7Memory=function(seq){
+    const v=document.getElementById("memin7").value.trim();
+    v===seq?up7Win():(toast("❌ Последовательность неверна"),data.chaos=Math.min(100,data.chaos+2),save7());
+  };
+  window.up7Detect=function(i,g){i===g?up7Win():(toast("❌ Доказательств недостаточно"),data.chaos=Math.min(100,data.chaos+2),save7())};
+
+  const bots=[
+    ["UNKNOWN",18,12450,9820,100],
+    ["SYSTEM",15,10230,8640,87],
+    ["404",13,8910,7420,72],
+    ["CAT",11,7650,6900,65],
+    ["ADMIN?",9,6340,5550,58],
+    ["VOID",8,5120,4490,51],
+    ["NPC_01",7,4310,3720,44],
+    ["GLITCH",6,3500,3010,39],
+    ["PLAYER_X",5,2800,2400,31],
+    ["NULL",4,1900,1710,22]
+  ];
+
+  window.up7Leaderboard=function(){
+    const me={
+      name:data.playerName||"YOU",
+      level:typeof data.level==="number"?data.level:1,
+      xp:typeof data.xp==="number"?data.xp:0,
+      score:typeof data.score==="number"?data.score:0,
+      chaos:data.chaos
+    };
+    let all=[...bots,[
+      me.name,me.level,me.xp,me.score,me.chaos
+    ]];
+    all.sort((a,b)=>(b[2]+b[3])-(a[2]+a[3]));
+    const top=all.slice(0,10);
+    const pos=all.findIndex(x=>x[0]===me.name)+1;
+
+    up7Render(`<div class="up7-title">🏆 GLOBAL LEADERBOARD</div>
+      <div class="up7-stat"><span>ТВОЁ МЕСТО</span><b>#${pos}</b></div>
+      <div class="up7-stat"><span>👤 ${me.name}</span><b>LVL ${me.level}</b></div>
+      <div class="up7-list" style="margin-top:10px">
+      ${top.map((x,i)=>`
+        <div class="up7-row ${x[0]===me.name?'up7-me':''}">
+          <div class="up7-rank">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+          <div><b>${x[0]}</b><br><small>LVL ${x[1]} · ${x[2]} XP</small></div>
+          <div><b>${x[3]}</b><br><small>☠️ ${x[4]}%</small></div>
+        </div>`).join("")}</div>
+      <button class="up7-btn" onclick="up7Leaderboard()">🔄 ОБНОВИТЬ</button>`);
+  };
+
+  window.up7Endings=function(){
+    const endings=[
+      ["NORMAL ENDING","Протокол завершён.",data.endings.includes("normal")],
+      ["SECRET ENDING","Ты нашёл скрытый путь.",data.endings.includes("secret")],
+      ["CHAOS ENDING","Система больше не контролирует хаос.",data.endings.includes("chaos")],
+      ["LEGENDARY ENDING","Ты достиг уровня легенды.",data.endings.includes("legendary")],
+      ["UNKNOWN ENDING","Кто такой UNKNOWN?",data.endings.includes("unknown")]
+    ];
+    if(data.chaos>=100 && !data.endings.includes("chaos"))data.endings.push("chaos");
+    if(data.world.includes("ROOM 404") && data.world.includes("VOID") && !data.endings.includes("secret"))data.endings.push("secret");
+    if((data.level||0)>=15 && !data.endings.includes("legendary"))data.endings.push("legendary");
+    if(data.chaos>=100 && data.world.includes("VOID") && data.inventory.includes("🐈") && !data.endings.includes("unknown"))data.endings.push("unknown");
+    save7();
+
+    up7Render(`<div class="up7-title">🎭 ENDINGS</div>
+      ${endings.map(e=>`<div class="up7-card" style="margin:7px 0">
+        ${e[2]?'🔓':'🔒'} <b>${e[0]}</b><br><small>${e[2]?e[1]:'???'}</small>
+      </div>`).join("")}`);
+  };
+
+  /* Добавляем кнопку в главное меню, если там есть обычные кнопки */
+  setTimeout(()=>{
+    try{
+      const menu=document.getElementById("menu");
+      if(menu && !document.getElementById("up7-menu-btn")){
+        const b=document.createElement("button");
+        b.id="up7-menu-btn";
+        b.className="btn";
+        b.textContent="🌐 UNKNOWN WORLD 7.0";
+        b.onclick=()=>show("up7");
+        menu.appendChild(b);
+      }
+    }catch(e){}
+  },800);
+
+  /* Счётчик кликов для новой системы */
+  document.addEventListener("click",()=>{
+    data.totalClicks=(data.totalClicks||0)+1;
+    if(data.totalClicks===100){
+      data.inventory.push("🔑 UNKNOWN KEY");
+      data.inventory=[...new Set(data.inventory)];
+      toast("🔑 СЕКРЕТ: UNKNOWN KEY");
+      save7();
+    }
+  });
+
+  /* Пассивное событие */
+  setInterval(()=>{
+    if(Math.random()<.12){
+      const msgs=[
+        "⚠️ SYSTEM: неизвестный сигнал.",
+        "👾 NPC: кто-то вошёл в WORLD.",
+        "🌑 VOID: нестабильность +1%",
+        "🐈 CAT: мяу."
+      ];
+      toast(msgs[Math.floor(Math.random()*msgs.length)]);
+    }
+  },18000);
+
+  save7();
+})();
 </script>
 </body>
 </html>
