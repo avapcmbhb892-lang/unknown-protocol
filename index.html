@@ -1837,5 +1837,121 @@ function clickSound(){
 })();
 </script>
 
+
+<script id="unknown-ambient-music">
+/* UNKNOWN AMBIENT MUSIC 1.0 */
+(function(){
+  let ctx=null;
+  let master=null;
+  let timer=null;
+  let playing=false;
+
+  const notes=[
+    110,130.81,146.83,164.81,
+    196,164.81,146.83,130.81
+  ];
+
+  function startAmbient(){
+    if(playing)return;
+
+    try{
+      ctx=ctx||new(window.AudioContext||window.webkitAudioContext)();
+
+      if(ctx.state==="suspended")ctx.resume();
+
+      master=ctx.createGain();
+      master.gain.setValueAtTime(0.0001,ctx.currentTime);
+      master.gain.exponentialRampToValueAtTime(
+        0.045,ctx.currentTime+2
+      );
+      master.connect(ctx.destination);
+
+      playing=true;
+
+      let i=0;
+
+      function note(){
+        if(!playing)return;
+
+        const osc=ctx.createOscillator();
+        const gain=ctx.createGain();
+
+        osc.type="sine";
+        osc.frequency.value=notes[i%notes.length];
+
+        gain.gain.setValueAtTime(0.0001,ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.018,ctx.currentTime+0.5
+        );
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,ctx.currentTime+2.8
+        );
+
+        osc.connect(gain);
+        gain.connect(master);
+
+        osc.start();
+        osc.stop(ctx.currentTime+3);
+
+        i++;
+        timer=setTimeout(note,1800);
+      }
+
+      note();
+
+    }catch(e){
+      console.log("Ambient music unavailable",e);
+    }
+  }
+
+  function stopAmbient(){
+    if(!playing)return;
+
+    playing=false;
+
+    if(timer){
+      clearTimeout(timer);
+      timer=null;
+    }
+
+    if(master){
+      try{
+        master.gain.exponentialRampToValueAtTime(
+          0.0001,ctx.currentTime+1
+        );
+      }catch(e){}
+    }
+  }
+
+  window.UNKNOWN_MUSIC={
+    start:startAmbient,
+    stop:stopAmbient,
+    toggle:function(){
+      playing?stopAmbient():startAmbient();
+      return playing;
+    },
+    isPlaying:function(){
+      return playing;
+    }
+  };
+
+  document.addEventListener("click",function(e){
+    const b=e.target.closest("#music-toggle");
+    if(!b)return;
+
+    setTimeout(function(){
+      if(playing){
+        b.textContent="Выкл.";
+        b.dataset.music="on";
+      }else{
+        b.textContent="Вкл.";
+        b.dataset.music="off";
+      }
+    },50);
+  });
+
+})();
+</script>
+
 </body>
 </html>
