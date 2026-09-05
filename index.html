@@ -1769,10 +1769,17 @@ document.addEventListener("DOMContentLoaded",function(){
   if(mv)mv.value=cfg.volume;
 
   if(mt)mt.onclick=function(){
-    cfg.music=!cfg.music;save();updateButtons();
-    if(cfg.music)startMusic();
-    else stopMusic();
-    cozyToast(cfg.music?"🎵 Музыка включена":"🔇 Музыка выключена");
+    cfg.music=!cfg.music;
+    save();
+    updateButtons();
+
+    if(cfg.music){
+      if(window.UNKNOWN_MUSIC) window.UNKNOWN_MUSIC.start();
+      cozyToast("🎵 Музыка включена");
+    }else{
+      if(window.UNKNOWN_MUSIC) window.UNKNOWN_MUSIC.stop();
+      cozyToast("🔇 Музыка выключена");
+    }
   };
 
   if(mv)mv.oninput=function(){
