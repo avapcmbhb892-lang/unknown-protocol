@@ -105,6 +105,32 @@ text-align:center;padding:25px
 .catcollection{font-size:42px;letter-spacing:5px;line-height:1.8}
 </style>
 
+
+/* ===== UNKNOWN SECRET UPDATE 6.1 ===== */
+.secret61{
+  margin-top:15px;padding:18px;border:1px solid rgba(160,0,255,.35);
+  border-radius:18px;background:rgba(20,5,30,.8);
+}
+.secret61-title{color:#c77dff;font-weight:900;font-size:21px;margin-bottom:12px}
+.secret61-btn{
+  width:100%;padding:12px;margin-top:8px;border-radius:12px;
+  border:1px solid #9d4edd;background:#170a20;color:#d8a8ff;
+  font-weight:900;cursor:pointer
+}
+.secret61-input{
+  width:100%;box-sizing:border-box;padding:12px;margin-top:8px;
+  border-radius:12px;border:1px solid #9d4edd;
+  background:#050207;color:#fff
+}
+.secret61-code{
+  padding:15px;text-align:center;font-size:24px;letter-spacing:5px;
+  border-radius:14px;background:#08030d;margin:12px 0;color:#d8a8ff
+}
+.secret61-progress{
+  height:10px;background:#111;border-radius:10px;overflow:hidden;margin-top:8px
+}
+.secret61-progress i{display:block;height:100%;background:#9d4edd}
+
 </style>
 </head>
 <body>
@@ -1561,5 +1587,239 @@ setTimeout(update6,500);
   save7();
 })();
 </script>
+
+<!-- ===== UNKNOWN SECRET UPDATE 6.1 ===== -->
+<section id="secret61" class="screen panel card" style="display:none">
+  <div class="secret61-title">🕵️ SECRET PROTOCOL 6.1</div>
+
+  <div class="secret61">
+    <b>📊 ИССЛЕДОВАНИЕ СИСТЕМЫ</b>
+    <div id="secret61progress">0 / 5 секретов</div>
+    <div class="secret61-progress"><i id="secret61bar" style="width:0%"></i></div>
+  </div>
+
+  <div class="secret61">
+    <div class="secret61-title">📟 UNKNOWN TERMINAL</div>
+    <div id="secret61terminal">
+      Терминал заблокирован.<br>
+      Найди правильный код.
+    </div>
+    <input id="secret61input" class="secret61-input"
+           placeholder="Введи код..." maxlength="30">
+    <button class="secret61-btn" onclick="secret61Check()">ПРОВЕРИТЬ</button>
+  </div>
+
+  <div class="secret61">
+    <div class="secret61-title">🧩 ТЕКУЩАЯ ЗАГАДКА</div>
+    <div id="secret61riddle">Нажми «Начать расследование».</div>
+    <button class="secret61-btn" onclick="secret61Start()">🔎 НАЧАТЬ РАССЛЕДОВАНИЕ</button>
+  </div>
+
+  <button class="secret61-btn" onclick="show('menu')">← НАЗАД</button>
+</section>
+
+
+<script>
+/* ===== UNKNOWN SECRET UPDATE 6.1 ENGINE ===== */
+(function(){
+
+  data.secret61 = data.secret61 || [];
+  data.secret61Stage = data.secret61Stage || 0;
+  data.secret61Solved = data.secret61Solved || false;
+
+  function save61(){
+    try{
+      localStorage.setItem("unknown4", JSON.stringify(data));
+    }catch(e){}
+    if(typeof save === "function"){
+      try{save()}catch(e){}
+    }
+  }
+
+  function render61(){
+    const n = data.secret61.length;
+    const p = Math.min(100, n * 20);
+
+    const text = document.getElementById("secret61progress");
+    const bar = document.getElementById("secret61bar");
+
+    if(text) text.textContent = n + " / 5 секретов";
+    if(bar) bar.style.width = p + "%";
+  }
+
+  window.openSecret61 = function(){
+    document.querySelectorAll(".screen").forEach(function(el){
+      el.classList.remove("active");
+      el.style.display="none";
+    });
+
+    const el=document.getElementById("secret61");
+    if(el){
+      el.classList.add("active");
+      el.style.display="block";
+    }
+
+    render61();
+  };
+
+  const riddles = [
+    {
+      q:"Я есть у системы, но меня нельзя увидеть. Я расту после ошибок. Что это?",
+      a:"хаос",
+      code:"CHAOS"
+    },
+    {
+      q:"Комната, которой нет, но в неё можно попасть. Какой номер?",
+      a:"404",
+      code:"ROOM404"
+    },
+    {
+      q:"Кто говорит «мяу» и почему система его пропускает?",
+      a:"кот",
+      code:"CAT"
+    },
+    {
+      q:"Что остаётся после удаления файла?",
+      a:"след",
+      code:"TRACE"
+    },
+    {
+      q:"Последний вопрос: кто такой UNKNOWN?",
+      a:"никто",
+      code:"UNKNOWN"
+    }
+  ];
+
+  window.secret61Start=function(){
+    const stage=Math.min(data.secret61Stage, riddles.length-1);
+    const r=riddles[stage];
+
+    const box=document.getElementById("secret61riddle");
+
+    if(box){
+      box.innerHTML =
+        "<p>"+r.q+"</p>"+
+        "<input id='secret61answer' class='secret61-input' "+
+        "placeholder='Твой ответ...'>"+
+        "<button class='secret61-btn' onclick='secret61Answer("+stage+")'>ОТВЕТИТЬ</button>";
+    }
+  };
+
+  window.secret61Answer=function(stage){
+    const input=document.getElementById("secret61answer");
+    if(!input) return;
+
+    const answer=input.value.trim().toLowerCase();
+    const r=riddles[stage];
+
+    if(answer === r.a){
+      if(!data.secret61.includes(r.code)){
+        data.secret61.push(r.code);
+      }
+
+      data.secret61Stage=Math.min(data.secret61Stage+1, riddles.length);
+
+      if(data.coins !== undefined) data.coins += 10;
+
+      save61();
+      render61();
+
+      if(typeof toast==="function")
+        toast("🔓 СЕКРЕТ ОТКРЫТ: "+r.code);
+
+      if(data.secret61.length >= 5){
+        data.secret61Solved=true;
+
+        if(typeof toast==="function")
+          toast("👁️ UNKNOWN ПРОТОКОЛ РАЗБЛОКИРОВАН");
+
+        const box=document.getElementById("secret61riddle");
+        if(box){
+          box.innerHTML =
+            "<div class='secret61-code'>UNKNOWN</div>"+
+            "<p>Система больше не уверена, что ты игрок.</p>"+
+            "<b>🎭 SECRET UNKNOWN ENDING UNLOCKED</b>";
+        }
+      }else{
+        const box=document.getElementById("secret61riddle");
+        if(box) box.innerHTML =
+          "<div class='secret61-code'>✓ "+r.code+"</div>"+
+          "<p>Следующий уровень расследования доступен.</p>"+
+          "<button class='secret61-btn' onclick='secret61Start()'>ДАЛЬШЕ</button>";
+      }
+    }else{
+      if(typeof toast==="function")
+        toast("❌ Неверный ответ");
+
+      data.chaos=Math.min(100,(data.chaos||0)+2);
+      save61();
+    }
+  };
+
+  window.secret61Check=function(){
+    const input=document.getElementById("secret61input");
+    const terminal=document.getElementById("secret61terminal");
+
+    if(!input || !terminal) return;
+
+    const code=input.value.trim().toUpperCase();
+
+    const known={
+      "CHAOS":"🌀 CHAOS PROTOCOL",
+      "ROOM404":"🚪 ROOM 404",
+      "CAT":"🐈 CAT ACCESS",
+      "TRACE":"👁️ TRACE DETECTED",
+      "UNKNOWN":"👤 UNKNOWN IDENTITY"
+    };
+
+    if(known[code]){
+      terminal.innerHTML =
+        "<div class='secret61-code'>ACCESS GRANTED</div>"+
+        "<b>"+known[code]+"</b><br>"+
+        "Терминал запомнил этот сигнал.";
+
+      if(!data.secret61.includes(code)){
+        data.secret61.push(code);
+        if(data.coins !== undefined) data.coins += 5;
+      }
+
+      save61();
+      render61();
+
+      if(typeof toast==="function")
+        toast("🔓 ACCESS GRANTED");
+    }else{
+      terminal.innerHTML =
+        "ACCESS DENIED.<br><small>Терминал наблюдает.</small>";
+
+      if(typeof toast==="function")
+        toast("❌ ACCESS DENIED");
+    }
+
+    input.value="";
+  };
+
+  setTimeout(function(){
+    const menu=document.getElementById("menu");
+
+    if(menu && !document.getElementById("secret61btn")){
+      const b=document.createElement("button");
+
+      b.id="secret61btn";
+      b.className="btn";
+      b.textContent="🕵️ SECRET PROTOCOL";
+      b.onclick=function(){
+        openSecret61();
+      };
+
+      menu.appendChild(b);
+    }
+
+    render61();
+  },1000);
+
+})();
+</script>
+
 </body>
 </html>
