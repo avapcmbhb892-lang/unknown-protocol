@@ -278,6 +278,52 @@ font-size:11px;opacity:.7;margin-top:5px;
 }
 </style>
 
+<style id="black-market-3-style">
+.black-market{
+margin-top:16px;padding:16px;border-radius:18px;
+border:1px solid rgba(255,80,120,.25);
+background:linear-gradient(145deg,rgba(80,10,30,.25),rgba(10,10,20,.5));
+}
+.black-market-head{
+display:flex;justify-content:space-between;align-items:center;
+gap:10px;margin-bottom:12px;
+}
+.black-market-grid{
+display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+.black-card{
+padding:14px;border-radius:15px;
+background:rgba(255,255,255,.045);
+border:1px solid rgba(255,255,255,.09);
+}
+.black-card.legendary{
+border-color:rgba(255,190,60,.4);
+box-shadow:0 0 20px rgba(255,160,30,.08);
+}
+.black-icon{font-size:30px;margin-bottom:7px}
+.black-card small{display:block;opacity:.65;min-height:36px;margin:6px 0}
+.black-buy{
+width:100%;padding:10px;border:0;border-radius:11px;
+background:rgba(255,70,110,.35);color:inherit;
+}
+.black-secret{
+margin-top:12px;padding:13px;border-radius:14px;
+background:rgba(255,255,255,.035);
+border:1px dashed rgba(255,255,255,.16);
+}
+.black-history{
+margin-top:12px;font-size:12px;opacity:.75;
+max-height:120px;overflow:auto;
+}
+.black-tag{
+display:inline-block;padding:3px 7px;border-radius:7px;
+font-size:10px;background:rgba(255,190,50,.15);
+}
+@media(max-width:520px){
+.black-market-grid{grid-template-columns:1fr}
+}
+</style>
+
 </head>
 <body>
 
@@ -2655,6 +2701,160 @@ if(document.readyState==="loading"){
 }
 
 setInterval(refresh,1500);
+
+})();
+</script>
+
+<script id="black-market-3-js">
+(function(){
+"use strict";
+
+const KEY="unknown_black_market_3";
+
+const items=[
+{id:"legend_core",name:"🔮 UNKNOWN CORE",desc:"Легендарное ядро протокола",price:1500},
+{id:"legend_eye",name:"👁️ SYSTEM EYE",desc:"Артефакт, которого нет в документации",price:2000},
+{id:"legend_key",name:"🔑 MASTER KEY",desc:"Ключ к закрытым функциям",price:2500},
+{id:"legend_mask",name:"🎭 NULL MASK",desc:"Скрытый легендарный предмет",price:3000}
+];
+
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||{
+owned:[],
+history:[],
+secret:false
+};
+
+function save(){
+localStorage.setItem(KEY,JSON.stringify(state));
+}
+
+function coins(){
+return typeof data!=="undefined"?Number(data.coins||0):0;
+}
+
+function spend(n){
+if(typeof data==="undefined"||coins()<n)return false;
+data.coins-=n;
+if(typeof save==="function")save();
+return true;
+}
+
+function notify(t){
+if(typeof cozyToast==="function")cozyToast(t);
+else if(typeof toast==="function")toast(t);
+}
+
+function buy(item){
+if(state.owned.includes(item.id)){
+notify("⚙️ Предмет уже получен");
+return;
+}
+
+if(!spend(item.price)){
+notify("❌ Недостаточно UNKNOWN COINS");
+return;
+}
+
+state.owned.push(item.id);
+state.history.unshift({
+name:item.name,
+time:new Date().toLocaleString()
+});
+
+if(state.history.length>20)state.history.length=20;
+
+save();
+
+notify("💎 ПОЛУЧЕНО: "+item.name);
+
+if(typeof p8Update==="function")p8Update();
+
+render();
+}
+
+function checkSecret(){
+/*
+Секретный рынок открывается после
+4 купленных легендарных предметов.
+*/
+if(state.owned.length>=4)state.secret=true;
+save();
+}
+
+function render(){
+const shop=document.getElementById("p8-shop");
+if(!shop)return;
+
+let box=document.getElementById("black-market-3");
+if(!box){
+box=document.createElement("div");
+box.id="black-market-3";
+box.className="black-market";
+
+const btn=shop.querySelector(".progress8-btn");
+
+if(btn&&btn.parentElement){
+btn.parentElement.insertBefore(box,btn);
+}else{
+shop.appendChild(box);
+}
+}
+
+checkSecret();
+
+box.innerHTML=
+'<div class="black-market-head">'+
+'<div><b>🕶️ UNKNOWN BLACK MARKET</b><br><small style="opacity:.55">Закрытый сектор протокола</small></div>'+
+'<div>🪙 <b>'+coins()+'</b></div>'+
+'</div>'+
+'<div class="black-market-grid">'+
+items.map(item=>{
+const owned=state.owned.includes(item.id);
+return '<div class="black-card legendary">'+
+'<div class="black-icon">'+item.name.split(" ")[0]+'</div>'+
+'<b>'+item.name.substring(item.name.indexOf(" ")+1)+'</b>'+
+'<small>'+item.desc+'</small>'+
+'<span class="black-tag">LEGENDARY</span>'+
+'<p>🪙 '+item.price+'</p>'+
+'<button class="black-buy" data-id="'+item.id+'">'+
+(owned?"✓ ПОЛУЧЕНО":"💎 ПОЛУЧИТЬ")+
+'</button>'+
+'</div>';
+}).join("")+
+'</div>'+
+'<div class="black-secret">'+
+'<b>🔐 SECRET SECTOR</b><br>'+
+(state.secret
+?'🟢 ДОСТУП ОТКРЫТ<br><small>Ты собрал все легендарные предметы.</small>'
+:'🔴 ДОСТУП ЗАКРЫТ<br><small>Собери все 4 легендарных предмета.</small>')+
+'</div>'+
+'<div class="black-history">'+
+'<b>📜 История Black Market</b><br>'+
+(state.history.length
+?state.history.map(x=>"• "+x.name+" — "+x.time).join("<br>")
+:"Покупок пока нет")+
+'</div>';
+
+box.querySelectorAll(".black-buy").forEach(btn=>{
+btn.onclick=function(){
+const item=items.find(x=>x.id===this.dataset.id);
+if(item)buy(item);
+};
+});
+}
+
+function start(){
+setTimeout(render,300);
+setInterval(function(){
+if(document.getElementById("black-market-3"))render();
+},2000);
+}
+
+if(document.readyState==="loading"){
+document.addEventListener("DOMContentLoaded",start);
+}else{
+start();
+}
 
 })();
 </script>
