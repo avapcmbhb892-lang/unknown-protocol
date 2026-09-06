@@ -4209,5 +4209,273 @@ window.u9Arcade=function(type){
   game.innerHTML="<b>❓ Неизвестная игра</b>";
 };
 
+
+<script id="unknown-npc-interaction">
+/* UNKNOWN NPC INTERACTION 2.0 */
+(function(){
+"use strict";
+
+const KEY="unknown_world_9";
+
+function getData(){
+  try{
+    return JSON.parse(localStorage.getItem(KEY)||"{}");
+  }catch(e){
+    return {};
+  }
+}
+
+function saveData(d){
+  localStorage.setItem(KEY,JSON.stringify(d));
+}
+
+function reward(xp,coins,secret){
+  const d=getData();
+
+  d.xp=(d.xp||0)+xp;
+  d.coins=(d.coins||0)+coins;
+  d.npcTalks=(d.npcTalks||0)+1;
+
+  if(secret){
+    d.secrets=(d.secrets||0)+1;
+  }
+
+  saveData(d);
+}
+
+function installNPC(){
+
+  const panel=document.getElementById("u9-npc");
+
+  if(!panel)return;
+
+  const box=panel.querySelector(".u9-box");
+
+  if(!box)return;
+
+  let game=document.getElementById("u9-npc-system");
+
+  if(game)return;
+
+  game=document.createElement("div");
+  game.id="u9-npc-system";
+  game.className="u9-card";
+  game.style.marginTop="15px";
+
+  game.innerHTML=`
+    <div style="font-size:20px;font-weight:900">
+      🤖 UNKNOWN AI
+    </div>
+
+    <p id="npc-text">
+      Система обнаружила игрока.
+    </p>
+
+    <div id="npc-options"></div>
+
+    <p id="npc-result"></p>
+  `;
+
+  const close=panel.querySelector(".u9-close");
+
+  if(close)box.insertBefore(game,close);
+  else box.appendChild(game);
+
+  const text=document.getElementById("npc-text");
+  const options=document.getElementById("npc-options");
+  const result=document.getElementById("npc-result");
+
+  let step=0;
+
+  function showStep(){
+
+    options.innerHTML="";
+    result.textContent="";
+
+    const data=getData();
+
+    const scenes=[
+      {
+        text:"🤖 UNKNOWN AI: Кто ты?",
+        answers:[
+          ["Исследователь","Я исследую этот мир.",1],
+          ["Игрок","Я просто хочу пройти дальше.",2],
+          ["Система","Я знаю этот протокол.",3]
+        ]
+      },
+
+      {
+        text:"🤖 UNKNOWN AI: Тогда ответь. Ты доверяешь системе?",
+        answers:[
+          ["Да","Доверяю.",4],
+          ["Нет","Не доверяю.",5],
+          ["Не знаю","Я пока не решил.",6]
+        ]
+      },
+
+      {
+        text:"🤖 UNKNOWN AI: В архиве спрятано нечто важное.",
+        answers:[
+          ["Искать архив","Я проверю архив.",7],
+          ["Спросить код","Какой код?",8],
+          ["Уйти","Мне нужно идти.",9]
+        ]
+      },
+
+      {
+        text:"🤖 UNKNOWN AI: Ты приблизился к границе VOID.",
+        answers:[
+          ["Что там?","Что находится внутри?",10],
+          ["Открыть VOID","Я готов.",11],
+          ["Назад","Я ещё не готов.",12]
+        ]
+      }
+    ];
+
+    const scene=scenes[step%scenes.length];
+
+    text.textContent=scene.text;
+
+    scene.answers.forEach(function(answer){
+
+      const button=document.createElement("button");
+
+      button.className="u9-btn";
+      button.textContent=answer[0];
+      button.style.margin="4px";
+
+      button.onclick=function(){
+
+        const choice=answer[1];
+        const code=answer[2];
+
+        result.textContent=choice;
+
+        /*
+         * Некоторые ответы дают разные последствия.
+         */
+
+        if(code===1){
+          reward(20,10,false);
+          result.textContent+=" • +20 XP";
+        }
+
+        else if(code===2){
+          reward(10,5,false);
+          result.textContent+=" • +10 XP";
+        }
+
+        else if(code===3){
+          reward(30,20,true);
+          result.textContent+=" • 🔐 СЕКРЕТ";
+        }
+
+        else if(code===4){
+          reward(15,5,false);
+          result.textContent+=" • Система запомнила ответ.";
+        }
+
+        else if(code===5){
+          reward(25,15,true);
+          result.textContent+=" • 👁️ Система насторожилась.";
+        }
+
+        else if(code===6){
+          reward(10,10,false);
+          result.textContent+=" • Неопределённость сохранена.";
+        }
+
+        else if(code===7){
+          reward(35,25,true);
+          result.textContent+=" • 📁 Архив отмечен.";
+        }
+
+        else if(code===8){
+          const d=getData();
+
+          d.items=d.items||[];
+
+          if(!d.items.includes("NPC HINT")){
+            d.items.push("NPC HINT");
+            d.secrets=(d.secrets||0)+1;
+          }
+
+          d.npcTalks=(d.npcTalks||0)+1;
+
+          saveData(d);
+
+          result.textContent=
+            "🧩 Подсказка: проверь Code Breaker.";
+        }
+
+        else if(code===9){
+          reward(5,5,false);
+        }
+
+        else if(code===10){
+          reward(30,15,true);
+          result.textContent=
+            "🌑 UNKNOWN AI: VOID хранит ответы.";
+        }
+
+        else if(code===11){
+
+          const d=getData();
+
+          if((d.level||1)<10){
+            result.textContent=
+              "🔒 Для VOID нужен уровень 10.";
+          }else{
+            reward(75,50,true);
+            result.textContent=
+              "🌑 Доступ разрешён.";
+          }
+        }
+
+        else if(code===12){
+          reward(5,5,false);
+        }
+
+        buttonsAfterChoice();
+
+        saveData(getData());
+      };
+
+      options.appendChild(button);
+    });
+  }
+
+  function buttonsAfterChoice(){
+
+    const next=document.createElement("button");
+
+    next.className="u9-btn";
+    next.textContent="Продолжить диалог";
+    next.style.marginTop="10px";
+
+    next.onclick=function(){
+      step++;
+      showStep();
+    };
+
+    options.appendChild(next);
+  }
+
+  showStep();
+}
+
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",installNPC);
+}else{
+  installNPC();
+}
+
+setTimeout(installNPC,500);
+setTimeout(installNPC,1500);
+setTimeout(installNPC,3000);
+
+})();
+</script>
+
 </body>
 </html>
