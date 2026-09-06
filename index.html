@@ -324,6 +324,47 @@ font-size:10px;background:rgba(255,190,50,.15);
 }
 </style>
 
+
+<style id="SHOP_SCROLL_FIX">
+#p8-shop{
+    max-height:80vh;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding-bottom:90px;
+}
+
+#p8-shop::-webkit-scrollbar{
+    width:7px;
+}
+
+#p8-shop::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.25);
+    border-radius:20px;
+}
+
+.shop2-wrap,
+#black-market-3{
+    max-width:100%;
+    box-sizing:border-box;
+}
+
+#shop2-content{
+    max-height:none !important;
+    overflow:visible !important;
+}
+
+.shop2-grid{
+    padding-bottom:20px;
+}
+
+#p8-shop .progress8-btn{
+    position:relative;
+    z-index:2;
+}
+</style>
+
 </head>
 <body>
 
