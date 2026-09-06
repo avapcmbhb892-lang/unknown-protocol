@@ -2846,5 +2846,76 @@ update();
 })();
 </script>
 
+
+<script id="u9-buttons-fix">
+/* UNKNOWN WORLD BUTTONS FIX 2.0 */
+(function(){
+  "use strict";
+
+  const buttons = {
+    "Мир": "u9-map",
+    "Аркада": "u9-arcade",
+    "NPC": "u9-npc",
+    "Коллекция": "u9-collection",
+    "Событие": "u9-event",
+    "Code Breaker": "u9-code",
+    "Рейтинг": "u9-leaderboard",
+    "Концовки": "u9-endings"
+  };
+
+  function install(){
+    const main=document.getElementById("u9-main");
+    if(!main)return;
+
+    const list=main.querySelectorAll("button.u9-btn");
+
+    list.forEach(function(btn){
+      const text=btn.textContent.trim();
+
+      for(const name in buttons){
+        if(text.includes(name)){
+          const target=buttons[name];
+
+          btn.onclick=function(e){
+            e.preventDefault();
+            e.stopPropagation();
+
+            if(typeof window.u9Open==="function"){
+              window.u9Open(target);
+            }else{
+              document.querySelectorAll(".u9-panel")
+                .forEach(function(x){
+                  x.classList.remove("show");
+                });
+
+              const panel=document.getElementById(target);
+              if(panel)panel.classList.add("show");
+            }
+
+            if(target==="u9-leaderboard" &&
+               typeof window.u9Leaderboard==="function"){
+              window.u9Leaderboard();
+            }
+          };
+
+          break;
+        }
+      }
+    });
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",install);
+  }else{
+    install();
+  }
+
+  setTimeout(install,500);
+  setTimeout(install,1500);
+  setTimeout(install,3000);
+
+})();
+</script>
+
 </body>
 </html>
