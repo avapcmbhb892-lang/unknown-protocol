@@ -2859,5 +2859,92 @@ start();
 })();
 </script>
 
+
+<script id="SHOP_OPEN_FIX_3">
+(function(){
+"use strict";
+
+function forceShop(){
+    const shop=document.getElementById("p8-shop");
+    if(!shop)return;
+
+    /* SHOP 2.0 */
+    if(!document.getElementById("shop2-content")){
+        const wrap=document.createElement("div");
+        wrap.className="progress8-card shop2-wrap";
+        wrap.innerHTML=
+            '<div class="progress8-title">🛒 UNKNOWN SHOP 2.0</div>'+
+            '<div id="shop2-content" data-cat="all"></div>';
+
+        const btn=shop.querySelector(".progress8-btn");
+
+        if(btn && btn.parentElement){
+            btn.parentElement.insertBefore(wrap,btn);
+        }else{
+            shop.appendChild(wrap);
+        }
+    }
+
+    /* Запускаем существующий SHOP 2.0 */
+    if(typeof window.unknownShop2Render==="function"){
+        try{
+            window.unknownShop2Render();
+        }catch(e){
+            console.warn("SHOP2 render:",e);
+        }
+    }
+
+    /* Black Market */
+    if(!document.getElementById("black-market-3")){
+        const box=document.createElement("div");
+        box.id="black-market-3";
+        box.className="black-market";
+
+        box.innerHTML=
+            '<div class="black-market-head">'+
+            '<div><b>🕶️ UNKNOWN BLACK MARKET</b><br>'+
+            '<small style="opacity:.55">Закрытый сектор протокола</small></div>'+
+            '<div>🪙 <b id="black-market-coins">0</b></div>'+
+            '</div>'+
+            '<div style="padding:14px;border-radius:14px;background:rgba(255,255,255,.04)">'+
+            '💎 <b>Легендарные предметы</b><br>'+
+            '<small style="opacity:.65">Здесь находятся самые редкие предметы протокола.</small>'+
+            '</div>';
+
+        const btn=shop.querySelector(".progress8-btn");
+
+        if(btn && btn.parentElement){
+            btn.parentElement.insertBefore(box,btn);
+        }else{
+            shop.appendChild(box);
+        }
+    }
+
+    const coins=document.getElementById("black-market-coins");
+    if(coins && typeof data!=="undefined"){
+        coins.textContent=Number(data.coins||0);
+    }
+}
+
+const oldOpen=window.p8Open;
+
+window.p8Open=function(id){
+    if(typeof oldOpen==="function"){
+        oldOpen(id);
+    }
+
+    if(id==="p8-shop"){
+        setTimeout(forceShop,50);
+        setTimeout(forceShop,300);
+    }
+};
+
+document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(forceShop,500);
+});
+
+})();
+</script>
+
 </body>
 </html>
