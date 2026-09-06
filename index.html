@@ -2595,50 +2595,7 @@ window.u9Talk=function(n){
  update();
 };
 
-window.u9Arcade=function(type){
- let reward=0;
 
- if(type==="reaction"){
-  const start=performance.now();
-  alert("Приготовься! Нажми OK и сразу нажми появившуюся кнопку.");
-  const t=performance.now()-start;
-  reward=Math.max(5,Math.min(50,Math.floor(50-t/100)));
-  d.wins++;
- }else if(type==="guess"){
-  const answer=Math.floor(Math.random()*10)+1;
-  const guess=Number(prompt("Угадай число от 1 до 10"));
-  if(guess===answer){
-   reward=40;
-   d.wins++;
-   toast("🎯 Верно!");
-  }else{
-   toast("❌ Было число "+answer);
-  }
- }else{
-  const symbols=["◆","◇","○","△"];
-  const target=symbols[Math.floor(Math.random()*symbols.length)];
-  const answer=prompt(
-   "Какой символ нужно найти?
-"+symbols.join("  ")
-  );
-  if(answer===target){
-   reward=30;
-   d.wins++;
-   toast("🔍 Найдено!");
-  }else{
-   toast("❌ Не найдено");
-  }
- }
-
- if(reward){
-  d.coins+=reward;
-  if(d.wins%5===0)d.level++;
-  save();
-  toast("🎁 +"+reward+" монет");
- }
-
- update();
-};
 
 const items=[
  ["🐱","UNKNOWN CAT"],
@@ -3118,109 +3075,7 @@ window.u9Talk=function(n){
  updateStats();
 };
 
-window.u9Arcade=function(type){
- if(type==="reaction"){
-  let panel=document.getElementById("u9-arcade");
 
-  if(!document.getElementById("u9-reaction-box")){
-   const box=document.createElement("div");
-   box.id="u9-reaction-box";
-   box.className="u9-card";
-   box.innerHTML=
-    '<b>⚡ REACTION TEST</b>'+
-    '<p id="u9-reaction-status">Нажми START и жди сигнала.</p>'+
-    '<button class="u9-btn" id="u9-reaction-start">START</button>';
-
-   panel.querySelector(".u9-box").insertBefore(
-    box,panel.querySelector(".u9-close")
-   );
-
-   document.getElementById("u9-reaction-start").onclick=function(){
-    const status=document.getElementById("u9-reaction-status");
-    const btn=this;
-
-    btn.disabled=true;
-    status.textContent="🟡 ЖДИ...";
-
-    const delay=1200+Math.random()*2500;
-
-    setTimeout(()=>{
-     const start=performance.now();
-
-     status.textContent="🟢 ЖМИ!";
-     btn.disabled=false;
-
-     btn.onclick=function(){
-      const ms=Math.round(performance.now()-start);
-      const reward=Math.max(10,Math.min(60,70-Math.floor(ms/25)));
-
-      d.coins+=reward;
-      d.wins++;
-      d.arcadeScore+=reward;
-
-      addXP(30);
-      save();
-      updateStats();
-
-      status.textContent="Результат: "+ms+" ms";
-      toast("⚡ +"+reward+" 🪙");
-
-      btn.onclick=function(){
-       document.getElementById("u9-reaction-start").click();
-      };
-     };
-    },delay);
-   };
-  }
-
-  toast("⚡ REACTION готов");
-  return;
- }
-
- if(type==="guess"){
-  const answer=Math.floor(Math.random()*10)+1;
-  const guess=Number(prompt("🎯 Угадай число от 1 до 10"));
-
-  if(guess===answer){
-   d.coins+=40;
-   d.wins++;
-   addXP(40);
-   toast("🎯 ПОПАДАНИЕ • +40 🪙");
-  }else{
-   toast("❌ Было число: "+answer);
-  }
-
-  save();
-  updateStats();
-  return;
- }
-
- if(type==="symbol"){
-  const symbols=["◆","◇","○","△"];
-  const target=symbols[Math.floor(Math.random()*symbols.length)];
-
-  const answer=prompt(
-   "🔍 Найди символ:
-"+
-   symbols.join("  ")+
-   "
-
-Введи найденный символ."
-  );
-
-  if(answer===target){
-   d.coins+=30;
-   d.wins++;
-   addXP(35);
-   toast("🔍 НАЙДЕНО • +30 🪙");
-  }else{
-   toast("❌ Неверно. Искомый: "+target);
-  }
-
-  save();
-  updateStats();
- }
-};
 
 const items=[
  ["🐱","UNKNOWN CAT"],
@@ -4113,28 +3968,246 @@ function symbol(){
 }
 
 /* Подключаем существующие кнопки */
-window.u9Arcade=function(type){
 
-  if(type==="reaction"){
-    reaction();
-    return;
-  }
-
-  if(type==="guess"){
-    guess();
-    return;
-  }
-
-  if(type==="symbol"){
-    symbol();
-    return;
-  }
-
-  message("❓ Неизвестная игра: "+type);
-};
 
 })();
 </script>
+
+
+window.u9Arcade=function(type){
+
+  const arcade=document.getElementById("u9-arcade");
+  if(!arcade)return;
+
+  let game=document.getElementById("u9-active-game");
+  if(game)game.remove();
+
+  game=document.createElement("div");
+  game.id="u9-active-game";
+  game.className="u9-card";
+  game.style.marginTop="15px";
+  game.style.textAlign="center";
+
+  const box=arcade.querySelector(".u9-box");
+  const close=arcade.querySelector(".u9-close");
+
+  if(close)box.insertBefore(game,close);
+  else box.appendChild(game);
+
+  /* ⚡ REACTION */
+  if(type==="reaction"){
+
+    game.innerHTML=`
+      <b>⚡ REACTION</b>
+      <p id="reaction-status">Нажми START и жди зелёного сигнала.</p>
+      <button class="u9-btn" id="reaction-start">START</button>
+    `;
+
+    const btn=document.getElementById("reaction-start");
+    const status=document.getElementById("reaction-status");
+
+    let waiting=false;
+    let start=0;
+
+    btn.onclick=function(){
+
+      if(waiting){
+        const ms=Math.round(performance.now()-start);
+
+        let reward=10;
+
+        if(ms<250)reward=60;
+        else if(ms<400)reward=45;
+        else if(ms<600)reward=30;
+        else if(ms<900)reward=20;
+
+        let d=JSON.parse(
+          localStorage.getItem("unknown_world_9")||"{}"
+        );
+
+        d.coins=(d.coins||0)+reward;
+        d.xp=(d.xp||0)+30;
+        d.wins=(d.wins||0)+1;
+
+        localStorage.setItem(
+          "unknown_world_9",
+          JSON.stringify(d)
+        );
+
+        status.textContent=
+          "⚡ "+ms+" мс — награда: "+reward+" 🪙";
+
+        btn.textContent="Играть ещё";
+        waiting=false;
+
+        btn.onclick=function(){
+          window.u9Arcade("reaction");
+        };
+
+        return;
+      }
+
+      btn.disabled=true;
+      btn.textContent="ЖДИ...";
+      status.textContent="🟡 Жди сигнала...";
+
+      const delay=1000+Math.random()*2500;
+
+      setTimeout(function(){
+
+        waiting=true;
+        start=performance.now();
+
+        btn.disabled=false;
+        btn.textContent="НАЖМИ!";
+        status.textContent="🟢 СЕЙЧАС!";
+
+      },delay);
+    };
+
+    return;
+  }
+
+  /* 🔢 GUESS NUMBER */
+  if(type==="guess"){
+
+    const answer=Math.floor(Math.random()*10)+1;
+
+    game.innerHTML=`
+      <b>🔢 GUESS NUMBER</b>
+      <p>Угадай число от 1 до 10.</p>
+
+      <input id="guess-input"
+        type="number"
+        min="1"
+        max="10"
+        inputmode="numeric"
+        placeholder="1–10"
+        style="width:100%;box-sizing:border-box;padding:12px">
+
+      <button class="u9-btn" id="guess-check">
+        ПРОВЕРИТЬ
+      </button>
+
+      <p id="guess-status"></p>
+    `;
+
+    document.getElementById("guess-check").onclick=function(){
+
+      const input=document.getElementById("guess-input");
+      const status=document.getElementById("guess-status");
+
+      const value=Number(input.value);
+
+      if(value<1 || value>10){
+        status.textContent="⚠️ Введи число от 1 до 10.";
+        return;
+      }
+
+      if(value===answer){
+
+        let d=JSON.parse(
+          localStorage.getItem("unknown_world_9")||"{}"
+        );
+
+        d.coins=(d.coins||0)+50;
+        d.xp=(d.xp||0)+40;
+        d.wins=(d.wins||0)+1;
+
+        localStorage.setItem(
+          "unknown_world_9",
+          JSON.stringify(d)
+        );
+
+        status.textContent=
+          "🎯 ПРАВИЛЬНО! +50 🪙";
+
+        this.disabled=true;
+
+      }else{
+
+        status.textContent=
+          value<answer ? "⬆️ Больше!" : "⬇️ Меньше!";
+      }
+    };
+
+    return;
+  }
+
+  /* 🔍 FIND SYMBOL */
+  if(type==="symbol"){
+
+    const symbols=["◆","◇","○","△","□","☆"];
+    const shuffled=[...symbols].sort(
+      ()=>Math.random()-0.5
+    );
+
+    const target=shuffled[
+      Math.floor(Math.random()*shuffled.length)
+    ];
+
+    game.innerHTML=`
+      <b>🔍 FIND SYMBOL</b>
+      <p>Найди этот символ:</p>
+
+      <div style="font-size:42px;margin:15px">
+        ${target}
+      </div>
+
+      <div id="symbol-buttons"></div>
+
+      <p id="symbol-status"></p>
+    `;
+
+    const buttons=document.getElementById("symbol-buttons");
+    const status=document.getElementById("symbol-status");
+
+    shuffled.forEach(function(symbol){
+
+      const btn=document.createElement("button");
+
+      btn.className="u9-btn";
+      btn.textContent=symbol;
+      btn.style.margin="4px";
+      btn.style.minWidth="55px";
+
+      btn.onclick=function(){
+
+        if(symbol===target){
+
+          let d=JSON.parse(
+            localStorage.getItem("unknown_world_9")||"{}"
+          );
+
+          d.coins=(d.coins||0)+35;
+          d.xp=(d.xp||0)+35;
+          d.wins=(d.wins||0)+1;
+
+          localStorage.setItem(
+            "unknown_world_9",
+            JSON.stringify(d)
+          );
+
+          status.textContent=
+            "🎯 НАЙДЕНО! +35 🪙";
+
+          buttons.querySelectorAll("button")
+            .forEach(x=>x.disabled=true);
+
+        }else{
+
+          status.textContent="❌ Неверный символ!";
+        }
+      };
+
+      buttons.appendChild(btn);
+    });
+
+    return;
+  }
+
+  game.innerHTML="<b>❓ Неизвестная игра</b>";
+};
 
 </body>
 </html>
