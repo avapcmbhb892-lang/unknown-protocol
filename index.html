@@ -2776,5 +2776,75 @@ update();
 })();
 </script>
 
+
+<script id="unknown-world-9-fix">
+/* UNKNOWN WORLD 9.0 FIX + LEADERBOARD AUTO UPDATE */
+(function(){
+  "use strict";
+
+  function fixWorldButton(){
+    const b=document.getElementById("u9-world-button");
+    if(!b)return;
+
+    b.style.zIndex="99999";
+    b.style.pointerEvents="auto";
+
+    b.onclick=function(e){
+      e.preventDefault();
+      e.stopPropagation();
+
+      if(typeof window.u9Open==="function"){
+        window.u9Open("u9-main");
+      }else{
+        const panel=document.getElementById("u9-main");
+        if(panel){
+          document.querySelectorAll(".u9-panel")
+            .forEach(x=>x.classList.remove("show"));
+          panel.classList.add("show");
+        }
+      }
+    };
+  }
+
+  function updateLeaderboard(){
+    const panel=document.getElementById("u9-leaderboard");
+
+    /*
+     * Обновляем только когда таблица существует.
+     * Это не перезагружает страницу.
+     */
+    if(panel && typeof window.u9Leaderboard==="function"){
+      window.u9Leaderboard();
+    }
+  }
+
+  function start(){
+    fixWorldButton();
+    updateLeaderboard();
+
+    /*
+     * Автообновление каждые 2 минуты.
+     */
+    setInterval(function(){
+      updateLeaderboard();
+    },120000);
+
+    /*
+     * Если DOM/старый интерфейс ещё догружается,
+     * повторно проверяем кнопку.
+     */
+    setTimeout(fixWorldButton,500);
+    setTimeout(fixWorldButton,1500);
+    setTimeout(fixWorldButton,3000);
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",start);
+  }else{
+    start();
+  }
+})();
+</script>
+
 </body>
 </html>
