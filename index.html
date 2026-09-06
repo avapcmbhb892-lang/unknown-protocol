@@ -3583,5 +3583,222 @@ setInterval(function(){
 })();
 </script>
 
+
+<script id="unknown-map-interaction">
+/* UNKNOWN MAP INTERACTION 1.0 */
+(function(){
+"use strict";
+
+function notify(text){
+  if(typeof toast==="function"){
+    toast(text);
+    return;
+  }
+
+  const old=document.getElementById("u9-map-message");
+  if(old)old.remove();
+
+  const box=document.createElement("div");
+  box.id="u9-map-message";
+  box.className="u9-card";
+  box.style.marginTop="12px";
+  box.style.textAlign="center";
+  box.textContent=text;
+
+  const map=document.getElementById("u9-map");
+  if(map){
+    const inside=map.querySelector(".u9-box");
+    if(inside)inside.appendChild(box);
+  }
+
+  setTimeout(()=>box.remove(),2500);
+}
+
+function getData(){
+  try{
+    const raw=localStorage.getItem("unknown_world_9");
+    return raw?JSON.parse(raw):{};
+  }catch(e){
+    return {};
+  }
+}
+
+function saveData(d){
+  localStorage.setItem("unknown_world_9",JSON.stringify(d));
+}
+
+function reward(xp,coins,secret){
+  const d=getData();
+
+  d.xp=(d.xp||0)+xp;
+  d.coins=(d.coins||0)+coins;
+
+  if(secret){
+    d.secrets=(d.secrets||0)+1;
+  }
+
+  saveData(d);
+
+  if(typeof window.u9Leaderboard==="function"){
+    window.u9Leaderboard();
+  }
+
+  notify(
+    "✨ +"+xp+" XP"+
+    (coins?" • +"+coins+" 🪙":"")+
+    (secret?" • 🔐 СЕКРЕТ":"")
+  );
+}
+
+function openRoom(room){
+  const d=getData();
+
+  if(room==="server"){
+    notify("🖥️ СЕРВЕРНАЯ: система работает стабильно.");
+
+    reward(10,5,false);
+
+    return;
+  }
+
+  if(room==="lab"){
+    notify("🧪 ЛАБОРАТОРИЯ: найден неизвестный образец.");
+
+    reward(20,10,true);
+
+    return;
+  }
+
+  if(room==="archive"){
+    if(!d.items)d.items=[];
+
+    if(!d.items.includes("ARCHIVE FILE")){
+      d.items.push("ARCHIVE FILE");
+      saveData(d);
+
+      notify("📁 АРХИВ: найден секретный файл!");
+
+      reward(30,20,true);
+    }else{
+      notify("📁 Ты уже исследовал этот архив.");
+    }
+
+    return;
+  }
+
+  if(room==="arcade"){
+    if(typeof window.u9Open==="function"){
+      window.u9Open("u9-arcade");
+    }
+
+    return;
+  }
+
+  if(room==="void"){
+    const level=d.level||1;
+
+    if(level<10){
+      notify("🔒 VOID: требуется уровень 10.");
+      return;
+    }
+
+    if(!d.items)d.items=[];
+
+    if(!d.items.includes("VOID FRAGMENT")){
+      d.items.push("VOID FRAGMENT");
+      saveData(d);
+
+      notify("🌑 VOID: фрагмент найден!");
+
+      reward(75,50,true);
+    }else{
+      notify("🌑 VOID уже исследован.");
+    }
+
+    return;
+  }
+
+  if(room==="unknown"){
+    const level=d.level||1;
+    const secrets=d.secrets||0;
+
+    if(level<15 || secrets<5){
+      notify("❓ ???: требуется уровень 15 и 5 секретов.");
+      return;
+    }
+
+    if(!d.items)d.items=[];
+
+    if(!d.items.includes("UNKNOWN CORE")){
+      d.items.push("UNKNOWN CORE");
+      saveData(d);
+
+      notify("❓ ???: ты нашёл UNKNOWN CORE!");
+
+      reward(150,100,true);
+    }else{
+      notify("❓ UNKNOWN CORE уже найден.");
+    }
+  }
+}
+
+function installMap(){
+
+  const map=document.getElementById("u9-map");
+
+  if(!map)return;
+
+  const rooms=map.querySelectorAll(".u9-room");
+
+  rooms.forEach(function(room){
+
+    if(room.dataset.interactive==="1")return;
+
+    room.dataset.interactive="1";
+
+    const text=room.textContent;
+
+    room.style.cursor="pointer";
+
+    if(text.includes("Серверная")){
+      room.onclick=()=>openRoom("server");
+    }
+
+    else if(text.includes("Лаборатория")){
+      room.onclick=()=>openRoom("lab");
+    }
+
+    else if(text.includes("Архив")){
+      room.onclick=()=>openRoom("archive");
+    }
+
+    else if(text.includes("Аркада")){
+      room.onclick=()=>openRoom("arcade");
+    }
+
+    else if(text.includes("VOID")){
+      room.onclick=()=>openRoom("void");
+    }
+
+    else if(text.includes("???")){
+      room.onclick=()=>openRoom("unknown");
+    }
+
+  });
+}
+
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",installMap);
+}else{
+  installMap();
+}
+
+setTimeout(installMap,500);
+setTimeout(installMap,1500);
+setTimeout(installMap,3000);
+
+})();
+</script>
+
 </body>
 </html>
