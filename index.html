@@ -3436,5 +3436,152 @@ setInterval(refreshWorld,120000);
 })();
 </script>
 
+
+<script id="unknown-world-final-router">
+/* UNKNOWN WORLD FINAL ROUTER 3.0 */
+(function(){
+"use strict";
+
+const routes={
+  "Мир":"u9-map",
+  "Аркада":"u9-arcade",
+  "NPC":"u9-npc",
+  "Коллекция":"u9-collection",
+  "Событие":"u9-event",
+  "Code Breaker":"u9-code",
+  "Рейтинг":"u9-leaderboard",
+  "Концовки":"u9-endings"
+};
+
+function closeAll(){
+  document.querySelectorAll(".u9-panel").forEach(function(x){
+    x.classList.remove("show");
+  });
+}
+
+function open(id){
+  const panel=document.getElementById(id);
+
+  if(!panel){
+    console.error("WORLD: panel not found:",id);
+    return;
+  }
+
+  closeAll();
+  panel.classList.add("show");
+
+  if(id==="u9-map" && typeof window.u9RenderMap==="function")
+    window.u9RenderMap();
+
+  if(id==="u9-collection" && typeof window.u9RenderCollection==="function")
+    window.u9RenderCollection();
+
+  if(id==="u9-leaderboard" && typeof window.u9Leaderboard==="function")
+    window.u9Leaderboard();
+
+  if(id==="u9-endings" && typeof window.u9RenderEndings==="function")
+    window.u9RenderEndings();
+
+  if(id==="u9-code" && typeof window.u9PrepareCode==="function")
+    window.u9PrepareCode();
+}
+
+window.u9Open=open;
+
+window.u9Close=function(){
+  closeAll();
+};
+
+function connectMain(){
+  const main=document.getElementById("u9-main");
+  if(!main)return false;
+
+  main.querySelectorAll("button").forEach(function(btn){
+
+    const text=btn.textContent.trim();
+
+    for(const name in routes){
+      if(text.includes(name)){
+
+        btn.onclick=function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          open(routes[name]);
+        };
+
+        break;
+      }
+    }
+  });
+
+  return true;
+}
+
+/* Общая навигация внутри WORLD */
+function connectBackButtons(){
+  document.querySelectorAll(".u9-panel").forEach(function(panel){
+
+    if(panel.id==="u9-main")return;
+
+    const buttons=panel.querySelectorAll("button");
+
+    buttons.forEach(function(btn){
+
+      const text=btn.textContent.trim().toLowerCase();
+
+      if(
+        text==="назад" ||
+        text.includes("← назад")
+      ){
+        btn.onclick=function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          open("u9-main");
+        };
+      }
+    });
+  });
+}
+
+/* Кнопка WORLD */
+function connectWorld(){
+  const b=document.getElementById("u9-world-button");
+
+  if(b){
+    b.onclick=function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      open("u9-main");
+    };
+  }
+}
+
+/* Не даём старым обработчикам мешать новой навигации */
+function install(){
+  connectMain();
+  connectBackButtons();
+  connectWorld();
+}
+
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",install);
+}else{
+  install();
+}
+
+setTimeout(install,300);
+setTimeout(install,1000);
+setTimeout(install,2500);
+
+/* Автообновление рейтинга каждые 2 минуты */
+setInterval(function(){
+  if(typeof window.u9Leaderboard==="function"){
+    window.u9Leaderboard();
+  }
+},120000);
+
+})();
+</script>
+
 </body>
 </html>
