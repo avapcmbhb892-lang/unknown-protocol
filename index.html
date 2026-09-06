@@ -236,6 +236,48 @@ body{padding-bottom:82px}
 
 </style>
 
+<style id="unknown-shop-2-1-style">
+html[data-shoptheme="cyber"] body{filter:saturate(1.25)}
+html[data-shoptheme="ocean"] body{filter:hue-rotate(150deg) saturate(1.15)}
+html[data-shoptheme="fire"] body{filter:hue-rotate(320deg) saturate(1.35)}
+html[data-shoptheme="gold"] body{filter:sepia(.35) saturate(1.5)}
+html[data-shoptheme="void"] body{filter:brightness(.82) contrast(1.15)}
+
+html[data-shopeffect="crt"] body:after{
+content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;
+background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.025) 4px);
+}
+html[data-shopeffect="scan"] body:before{
+content:"";position:fixed;left:0;right:0;top:0;height:2px;
+background:rgba(120,220,255,.28);pointer-events:none;z-index:9999;
+animation:shopScan 3s linear infinite;
+}
+@keyframes shopScan{from{top:0}to{top:100%}}
+
+html[data-shopeffect="glitch"] .panel,
+html[data-shopeffect="glitch"] .card{
+animation:shopGlitch 4s infinite;
+}
+@keyframes shopGlitch{
+0%,94%,100%{transform:none}
+95%{transform:translateX(2px)}
+96%{transform:translateX(-2px)}
+97%{transform:none}
+}
+
+.shop2-active{
+outline:1px solid rgba(130,120,255,.7)!important;
+box-shadow:0 0 18px rgba(100,90,255,.18);
+}
+.shop2-title{
+display:inline-block;margin:5px 0;padding:5px 9px;border-radius:9px;
+background:rgba(120,100,255,.16);font-size:12px;
+}
+.shop2-equipped{
+font-size:11px;opacity:.7;margin-top:5px;
+}
+</style>
+
 </head>
 <body>
 
@@ -2254,6 +2296,368 @@ save();
 })();
 </script>
 
+
+
+<style id="unknown-shop-2-style">
+.shop2-wrap{margin-top:14px}
+.shop2-balance{padding:13px;margin:10px 0;border-radius:14px;background:rgba(255,255,255,.06);font-size:18px}
+.shop2-tabs{display:flex;gap:7px;overflow-x:auto;padding:5px 0 12px}
+.shop2-tab{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;padding:9px 12px;border-radius:12px;white-space:nowrap}
+.shop2-tab.active{background:rgba(110,95,255,.35)}
+.shop2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.shop2-card{padding:14px;border-radius:16px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09)}
+.shop2-icon{font-size:28px;margin-bottom:6px}
+.shop2-card b{display:block}
+.shop2-card small{display:block;opacity:.65;min-height:38px;margin:6px 0}
+.shop2-price{margin:8px 0;font-weight:800}
+.shop2-buy{width:100%;border:0;border-radius:11px;padding:10px;color:white;background:rgba(110,95,255,.45)}
+.shop2-inventory{margin-top:14px;padding:13px;border-radius:15px;background:rgba(255,255,255,.04)}
+.shop2-inventory span{display:inline-block;margin:4px;padding:5px 8px;border-radius:9px;background:rgba(255,255,255,.07)}
+@media(max-width:520px){.shop2-grid{grid-template-columns:1fr}}
+</style>
+
+<script id="unknown-shop-2-js">
+/* UNKNOWN SHOP 2.0 */
+(function(){
+"use strict";
+
+const SHOP_KEY="unknown_shop_2";
+
+const catalog=[
+{id:"m1",cat:"themes",name:"🟢 MATRIX",desc:"Зелёный цифровой терминал",price:250,type:"theme",value:"matrix"},
+{id:"m2",cat:"themes",name:"🔵 CYBER",desc:"Холодный киберпанк",price:300,type:"theme",value:"cyber"},
+{id:"m3",cat:"themes",name:"🟣 VOID",desc:"Тёмная энергия VOID",price:400,type:"theme",value:"void"},
+{id:"m4",cat:"themes",name:"🌊 OCEAN",desc:"Неоновый океан",price:350,type:"theme",value:"ocean"},
+{id:"m5",cat:"themes",name:"🔥 FIRE",desc:"Энергия огня",price:450,type:"theme",value:"fire"},
+{id:"m6",cat:"themes",name:"🟡 GOLD",desc:"Золотой протокол",price:600,type:"theme",value:"gold"},
+
+{id:"e1",cat:"effects",name:"⚡ GLITCH",desc:"Глитч-эффект",price:300,type:"effect",value:"glitch"},
+{id:"e2",cat:"effects",name:"📡 SCANLINE",desc:"Сканирующий экран",price:350,type:"effect",value:"scan"},
+{id:"e3",cat:"effects",name:"✨ PARTICLES",desc:"Дополнительные частицы",price:400,type:"effect",value:"particles"},
+{id:"e4",cat:"effects",name:"📺 CRT",desc:"Эффект старого монитора",price:500,type:"effect",value:"crt"},
+
+{id:"t1",cat:"titles",name:"👁️ UNKNOWN",desc:"Титул неизвестного",price:150,type:"title",value:"UNKNOWN"},
+{id:"t2",cat:"titles",name:"💻 HACKER",desc:"Системный взломщик",price:300,type:"title",value:"HACKER"},
+{id:"t3",cat:"titles",name:"👑 LEGEND",desc:"Титул легенды",price:700,type:"title",value:"LEGEND"},
+{id:"t4",cat:"titles",name:"🌑 VOID WALKER",desc:"Странник VOID",price:900,type:"title",value:"VOID WALKER"},
+
+{id:"b1",cat:"boosters",name:"⚡ XP BOOST",desc:"+50% XP на 10 минут",price:250,type:"boost",value:"xp"},
+{id:"b2",cat:"boosters",name:"🪙 COIN BOOST",desc:"+50% монет на 10 минут",price:300,type:"boost",value:"coins"},
+
+{id:"c1",cat:"chests",name:"📦 COMMON BOX",desc:"Случайная награда",price:200,type:"chest",value:"common"},
+{id:"c2",cat:"chests",name:"💎 RARE BOX",desc:"Шанс на редкий предмет",price:500,type:"chest",value:"rare"},
+{id:"c3",cat:"chests",name:"❓ UNKNOWN BOX",desc:"Полностью случайная награда",price:1000,type:"chest",value:"unknown"},
+
+{id:"r1",cat:"rare",name:"🔮 UNKNOWN CORE",desc:"Редкий артефакт",price:1500,type:"item",value:"UNKNOWN CORE"},
+{id:"r2",cat:"rare",name:"👁️ SYSTEM EYE",desc:"Системный артефакт",price:2000,type:"item",value:"SYSTEM EYE"},
+{id:"r3",cat:"rare",name:"🔑 MASTER KEY",desc:"Ключ протокола",price:2500,type:"item",value:"MASTER KEY"}
+];
+
+let state=JSON.parse(localStorage.getItem(SHOP_KEY)||"null")||{
+owned:[],inventory:[],theme:"",effect:"",title:"",boosts:{}
+};
+
+function saveShop(){
+localStorage.setItem(SHOP_KEY,JSON.stringify(state));
+}
+
+function getCoins(){
+return typeof data!=="undefined" ? Number(data.coins||0) : 0;
+}
+
+function spend(price){
+if(typeof data==="undefined")return false;
+if(getCoins()<price)return false;
+data.coins-=price;
+if(typeof save==="function")save();
+return true;
+}
+
+function message(text){
+if(typeof window.cozyToast==="function")window.cozyToast(text);
+else if(typeof window.toast==="function")window.toast(text);
+}
+
+function activate(item){
+if(item.type==="theme"){
+state.theme=item.value;
+document.documentElement.dataset.shoptheme=item.value;
+}
+if(item.type==="effect"){
+state.effect=item.value;
+document.documentElement.dataset.shopeffect=item.value;
+}
+if(item.type==="title"){
+state.title=item.value;
+}
+saveShop();
+render();
+}
+
+function chest(kind){
+let pool;
+
+if(kind==="common"){
+pool=catalog.filter(x=>x.cat==="titles"||x.cat==="effects");
+}else if(kind==="rare"){
+pool=catalog.filter(x=>x.cat==="rare"||x.cat==="titles");
+}else{
+pool=catalog.filter(x=>x.cat!=="chests");
+}
+
+let item=pool[Math.floor(Math.random()*pool.length)];
+
+if(!state.owned.includes(item.id))state.owned.push(item.id);
+
+if(item.type==="item")state.inventory.push(item.value);
+
+if(item.type==="theme"||item.type==="effect"||item.type==="title")
+activate(item);
+
+message("🎁 Выпало: "+item.name);
+saveShop();
+}
+
+function buy(item){
+if(!item)return;
+
+if(state.owned.includes(item.id)){
+activate(item);
+message("⚙️ Активировано: "+item.name);
+return;
+}
+
+if(!spend(item.price)){
+message("❌ Недостаточно монет");
+return;
+}
+
+state.owned.push(item.id);
+
+if(item.type==="chest"){
+chest(item.value);
+}else if(item.type==="boost"){
+state.boosts[item.value]=Date.now()+600000;
+message("⚡ Бустер активирован на 10 минут");
+}else if(item.type==="item"){
+state.inventory.push(item.value);
+message("🎁 Получен: "+item.name);
+}else{
+activate(item);
+message("✅ Куплено: "+item.name);
+}
+
+saveShop();
+render();
+
+if(typeof p8Update==="function")p8Update();
+}
+
+function render(){
+const root=document.getElementById("shop2-content");
+if(!root)return;
+
+const active=root.dataset.cat||"all";
+
+const cats=[
+["all","🛒 Все"],
+["themes","🎨 Темы"],
+["effects","✨ Эффекты"],
+["titles","🏷️ Титулы"],
+["boosters","⚡ Бустеры"],
+["chests","🎁 Сундуки"],
+["rare","💎 Редкие"]
+];
+
+root.innerHTML=
+'<div class="shop2-balance">🪙 Баланс: <b>'+getCoins()+'</b></div>'+
+'<div class="shop2-tabs">'+
+cats.map(c=>'<button class="shop2-tab '+(active===c[0]?"active":"")+'" data-cat="'+c[0]+'">'+c[1]+'</button>').join("")+
+'</div>'+
+'<div class="shop2-grid">'+
+catalog.filter(x=>active==="all"||x.cat===active).map(item=>{
+return '<div class="shop2-card">'+
+'<div class="shop2-icon">'+item.name.split(" ")[0]+'</div>'+
+'<b>'+item.name.substring(item.name.indexOf(" ")+1)+'</b>'+
+'<small>'+item.desc+'</small>'+
+'<div class="shop2-price">🪙 '+item.price+'</div>'+
+'<button class="shop2-buy" data-id="'+item.id+'">'+
+(state.owned.includes(item.id)?"⚙️ Активировать":"🛒 Купить")+
+'</button></div>';
+}).join("")+
+'</div>'+
+'<div class="shop2-live-status" style="margin:10px 0;padding:10px;border-radius:12px;background:rgba(255,255,255,.04)">
+<b>⚙️ Активно:</b>
+<span id="shop2-active-theme">стандарт</span>
+<span id="shop2-active-effect"></span>
+<span id="shop2-active-title"></span>
+</div>
+<div class="shop2-inventory">'+
+'<b>🎒 Инвентарь</b><br>'+
+(state.inventory.length?state.inventory.map(x=>'<span>'+x+'</span>').join(""):"Пусто")+
+(state.title?'<p>🏷️ Титул: <b>'+state.title+'</b></p>':"")+
+'</div>';
+
+root.querySelectorAll(".shop2-tab").forEach(btn=>{
+btn.onclick=function(){
+root.dataset.cat=this.dataset.cat;
+render();
+};
+});
+
+root.querySelectorAll(".shop2-buy").forEach(btn=>{
+btn.onclick=function(){
+buy(catalog.find(x=>x.id===this.dataset.id));
+};
+});
+}
+
+function install(){
+const shop=document.getElementById("p8-shop");
+if(!shop)return;
+if(document.getElementById("shop2-content"))return;
+
+const wrap=document.createElement("div");
+wrap.className="progress8-card shop2-wrap";
+wrap.innerHTML=
+'<div class="progress8-title">🛒 SHOP 2.0</div>'+
+'<div id="shop2-content" data-cat="all"></div>';
+
+const close=shop.querySelector(".progress8-btn");
+const parent=close?close.parentElement:shop;
+
+if(close)parent.insertBefore(wrap,close);
+else shop.appendChild(wrap);
+
+if(state.theme)document.documentElement.dataset.shoptheme=state.theme;
+if(state.effect)document.documentElement.dataset.shopeffect=state.effect;
+
+render();
+}
+
+window.unknownShop2Render=render;
+
+if(document.readyState==="loading"){
+document.addEventListener("DOMContentLoaded",install);
+}else{
+setTimeout(install,100);
+}
+
+})();
+</script>
+
+<script id="unknown-shop-2-2-js">
+(function(){
+"use strict";
+
+function shop21Sync(){
+    try{
+        const raw=localStorage.getItem("unknown_shop_2");
+        if(!raw)return;
+
+        const st=JSON.parse(raw)||{};
+
+        if(st.theme){
+            document.documentElement.dataset.shoptheme=st.theme;
+        }else{
+            delete document.documentElement.dataset.shoptheme;
+        }
+
+        if(st.effect){
+            document.documentElement.dataset.shopeffect=st.effect;
+        }else{
+            delete document.documentElement.dataset.shopeffect;
+        }
+
+        const theme=document.getElementById("shop2-active-theme");
+        const effect=document.getElementById("shop2-active-effect");
+        const title=document.getElementById("shop2-active-title");
+
+        if(theme)theme.textContent=st.theme?("🎨 "+st.theme.toUpperCase()):"стандарт";
+        if(effect)effect.textContent=st.effect?("  •  ✨ "+st.effect.toUpperCase()):"";
+        if(title)title.textContent=st.title?("  •  🏷️ "+st.title):"";
+
+        document.querySelectorAll(".shop2-card").forEach(card=>{
+            card.classList.remove("shop2-active");
+        });
+
+        if(st.theme){
+            const item=document.querySelector('.shop2-buy[data-id]');
+            void item;
+        }
+
+    }catch(e){
+        console.warn("SHOP 2.2:",e);
+    }
+}
+
+const oldRender=window.unknownShop2Render;
+
+window.unknownShop2Render=function(){
+    if(typeof oldRender==="function")oldRender();
+    setTimeout(shop21Sync,30);
+};
+
+function addVisualParticles(){
+    try{
+        const raw=localStorage.getItem("unknown_shop_2");
+        if(!raw)return;
+
+        const st=JSON.parse(raw)||{};
+
+        if(st.effect!=="particles")return;
+        if(document.getElementById("shop2-particles"))return;
+
+        const layer=document.createElement("div");
+        layer.id="shop2-particles";
+        layer.style.cssText=
+            "position:fixed;inset:0;pointer-events:none;z-index:9997;overflow:hidden";
+
+        for(let i=0;i<28;i++){
+            const dot=document.createElement("i");
+            dot.style.cssText=
+                "position:absolute;width:3px;height:3px;border-radius:50%;"+
+                "background:currentColor;opacity:.35;"+
+                "left:"+Math.random()*100+"%;"+
+                "top:"+Math.random()*100+"%;"+
+                "animation:shopParticleFloat "+(3+Math.random()*5)+"s linear infinite;";
+            layer.appendChild(dot);
+        }
+
+        document.body.appendChild(layer);
+
+        if(!document.getElementById("shop2-particle-style")){
+            const style=document.createElement("style");
+            style.id="shop2-particle-style";
+            style.textContent=
+                "@keyframes shopParticleFloat{0%{transform:translateY(20px);opacity:0}"+
+                "30%{opacity:.4}70%{opacity:.25}100%{transform:translateY(-80px);opacity:0}}";
+            document.head.appendChild(style);
+        }
+    }catch(e){}
+}
+
+function refresh(){
+    shop21Sync();
+
+    const old=document.getElementById("shop2-particles");
+    if(old)old.remove();
+
+    addVisualParticles();
+}
+
+if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",function(){
+        setTimeout(refresh,200);
+    });
+}else{
+    setTimeout(refresh,200);
+}
+
+setInterval(refresh,1500);
+
+})();
+</script>
 
 </body>
 </html>
