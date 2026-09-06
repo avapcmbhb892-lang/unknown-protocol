@@ -3800,5 +3800,341 @@ setTimeout(installMap,3000);
 })();
 </script>
 
+
+<script id="unknown-arcade-interaction">
+/* UNKNOWN ARCADE INTERACTION 2.0 */
+(function(){
+"use strict";
+
+const KEY="unknown_world_9";
+
+function data(){
+  try{
+    return JSON.parse(localStorage.getItem(KEY)||"{}");
+  }catch(e){
+    return {};
+  }
+}
+
+function save(d){
+  localStorage.setItem(KEY,JSON.stringify(d));
+}
+
+function reward(xp,coins){
+  const d=data();
+
+  d.xp=(d.xp||0)+xp;
+  d.coins=(d.coins||0)+coins;
+  d.wins=(d.wins||0)+1;
+  d.arcadeScore=(d.arcadeScore||0)+coins;
+
+  save(d);
+
+  if(typeof window.u9Leaderboard==="function"){
+    window.u9Leaderboard();
+  }
+
+  if(typeof window.u9Open==="function"){
+    /* обновляем текущий экран */
+  }
+}
+
+function message(text){
+  let box=document.getElementById("u9-arcade-message");
+
+  if(!box){
+    const arcade=document.getElementById("u9-arcade");
+    const inside=arcade?.querySelector(".u9-box");
+
+    if(!inside)return;
+
+    box=document.createElement("div");
+    box.id="u9-arcade-message";
+    box.className="u9-card";
+    box.style.marginTop="12px";
+    box.style.textAlign="center";
+
+    inside.appendChild(box);
+  }
+
+  box.textContent=text;
+}
+
+/* =========================
+   ⚡ REACTION
+========================= */
+
+function reaction(){
+
+  const arcade=document.getElementById("u9-arcade");
+  if(!arcade)return;
+
+  let game=document.getElementById("u9-reaction-game");
+
+  if(game){
+    game.remove();
+  }
+
+  game=document.createElement("div");
+  game.id="u9-reaction-game";
+  game.className="u9-card";
+  game.style.marginTop="12px";
+  game.style.textAlign="center";
+
+  game.innerHTML=`
+    <b>⚡ REACTION TEST</b>
+    <p id="u9-reaction-text">Нажми START.</p>
+    <button class="u9-btn" id="u9-reaction-button">START</button>
+  `;
+
+  const close=arcade.querySelector(".u9-close");
+
+  if(close){
+    arcade.querySelector(".u9-box").insertBefore(game,close);
+  }else{
+    arcade.querySelector(".u9-box").appendChild(game);
+  }
+
+  const text=document.getElementById("u9-reaction-text");
+  const button=document.getElementById("u9-reaction-button");
+
+  let started=false;
+  let startTime=0;
+  let timer=null;
+
+  button.onclick=function(){
+
+    if(started){
+      const ms=Math.round(performance.now()-startTime);
+
+      let coins=10;
+
+      if(ms<250)coins=60;
+      else if(ms<400)coins=45;
+      else if(ms<600)coins=30;
+      else if(ms<900)coins=20;
+
+      reward(30,coins);
+
+      text.textContent=
+        "⚡ "+ms+" мс • +"+coins+" 🪙";
+
+      button.textContent="Ещё раз";
+      started=false;
+
+      button.onclick=function(){
+        reaction();
+      };
+
+      return;
+    }
+
+    button.disabled=true;
+    button.textContent="ЖДИ...";
+    text.textContent="🟡 Система готовится...";
+
+    const delay=1000+Math.random()*3000;
+
+    timer=setTimeout(function(){
+
+      started=true;
+      startTime=performance.now();
+
+      button.disabled=false;
+      button.textContent="НАЖМИ!";
+      text.textContent="🟢 СЕЙЧАС!";
+
+    },delay);
+  };
+}
+
+/* =========================
+   🔢 GUESS NUMBER
+========================= */
+
+function guess(){
+
+  const arcade=document.getElementById("u9-arcade");
+  if(!arcade)return;
+
+  let game=document.getElementById("u9-guess-game");
+
+  if(game)game.remove();
+
+  game=document.createElement("div");
+  game.id="u9-guess-game";
+  game.className="u9-card";
+  game.style.marginTop="12px";
+  game.style.textAlign="center";
+
+  game.innerHTML=`
+    <b>🔢 GUESS NUMBER</b>
+    <p>Угадай число от 1 до 10.</p>
+    <input id="u9-guess-input"
+      type="number"
+      min="1"
+      max="10"
+      inputmode="numeric"
+      style="width:100%;box-sizing:border-box;padding:12px;margin:8px 0;">
+    <button class="u9-btn" id="u9-guess-button">
+      Проверить
+    </button>
+    <p id="u9-guess-result"></p>
+  `;
+
+  const close=arcade.querySelector(".u9-close");
+
+  if(close){
+    arcade.querySelector(".u9-box").insertBefore(game,close);
+  }else{
+    arcade.querySelector(".u9-box").appendChild(game);
+  }
+
+  const answer=Math.floor(Math.random()*10)+1;
+
+  document.getElementById("u9-guess-button").onclick=function(){
+
+    const input=document.getElementById("u9-guess-input");
+    const result=document.getElementById("u9-guess-result");
+
+    const value=Number(input.value);
+
+    if(value<1 || value>10){
+      result.textContent="⚠️ Введи число от 1 до 10.";
+      return;
+    }
+
+    if(value===answer){
+
+      reward(40,50);
+
+      result.textContent=
+        "🎯 ПРАВИЛЬНО! +50 🪙";
+
+      this.disabled=true;
+
+    }else{
+
+      const hint=value<answer
+        ?"⬆️ Больше"
+        :"⬇️ Меньше";
+
+      result.textContent=
+        "❌ Не угадал. "+hint;
+
+    }
+  };
+}
+
+/* =========================
+   🔍 FIND SYMBOL
+========================= */
+
+function symbol(){
+
+  const arcade=document.getElementById("u9-arcade");
+  if(!arcade)return;
+
+  let game=document.getElementById("u9-symbol-game");
+
+  if(game)game.remove();
+
+  const symbols=[
+    "◆","◇","○","△","□","☆","♢","●"
+  ];
+
+  const shuffled=[...symbols]
+    .sort(()=>Math.random()-0.5)
+    .slice(0,5);
+
+  const target=
+    shuffled[Math.floor(Math.random()*shuffled.length)];
+
+  game=document.createElement("div");
+  game.id="u9-symbol-game";
+  game.className="u9-card";
+  game.style.marginTop="12px";
+  game.style.textAlign="center";
+
+  game.innerHTML=`
+    <b>🔍 FIND SYMBOL</b>
+    <p>Найди символ:</p>
+    <div style="font-size:30px;margin:12px">
+      ${target}
+    </div>
+    <div id="u9-symbol-buttons"></div>
+    <p id="u9-symbol-result"></p>
+  `;
+
+  const close=arcade.querySelector(".u9-close");
+
+  if(close){
+    arcade.querySelector(".u9-box").insertBefore(game,close);
+  }else{
+    arcade.querySelector(".u9-box").appendChild(game);
+  }
+
+  const buttons=
+    document.getElementById("u9-symbol-buttons");
+
+  shuffled.forEach(function(symbolValue){
+
+    const b=document.createElement("button");
+
+    b.className="u9-btn";
+    b.textContent=symbolValue;
+    b.style.margin="4px";
+    b.style.minWidth="55px";
+
+    b.onclick=function(){
+
+      const result=
+        document.getElementById("u9-symbol-result");
+
+      if(symbolValue===target){
+
+        reward(35,35);
+
+        result.textContent=
+          "🎯 НАЙДЕНО! +35 🪙";
+
+        buttons.querySelectorAll("button")
+          .forEach(x=>x.disabled=true);
+
+      }else{
+
+        result.textContent=
+          "❌ Неверный символ.";
+      }
+    };
+
+    buttons.appendChild(b);
+  });
+}
+
+/* Подключаем существующие кнопки */
+window.u9Arcade=function(type){
+
+  if(type==="reaction"){
+    reaction();
+    return;
+  }
+
+  if(type==="guess"){
+    guess();
+    return;
+  }
+
+  if(type==="symbol"){
+    symbol();
+    return;
+  }
+
+  message("❓ Неизвестная игра: "+type);
+};
+
+})();
+</script>
+
 </body>
 </html>
