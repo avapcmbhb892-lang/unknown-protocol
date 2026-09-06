@@ -2917,5 +2917,524 @@ update();
 })();
 </script>
 
+
+<script id="unknown-world-interaction-2">
+/* UNKNOWN WORLD 9.0 INTERACTION ENGINE 2.0 */
+(function(){
+"use strict";
+
+const KEY="unknown_world_9";
+let d;
+
+try{
+ d=JSON.parse(localStorage.getItem(KEY)||"null");
+}catch(e){
+ d=null;
+}
+
+if(!d){
+ d={
+  level:1,
+  xp:0,
+  coins:0,
+  wins:0,
+  secrets:0,
+  items:[],
+  endings:[],
+  events:0,
+  codes:0,
+  arcadeScore:0,
+  npcTalks:0
+ };
+}
+
+d.level=d.level||1;
+d.xp=d.xp||0;
+d.coins=d.coins||0;
+d.wins=d.wins||0;
+d.secrets=d.secrets||0;
+d.items=Array.isArray(d.items)?d.items:[];
+d.endings=Array.isArray(d.endings)?d.endings:[];
+d.events=d.events||0;
+d.codes=d.codes||0;
+d.arcadeScore=d.arcadeScore||0;
+d.npcTalks=d.npcTalks||0;
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(d));
+}
+
+function toast(t){
+ const e=document.getElementById("u9-toast");
+ if(e){
+  e.textContent=t;
+  e.classList.add("show");
+  clearTimeout(window.__u9interactionToast);
+  window.__u9interactionToast=setTimeout(
+   ()=>e.classList.remove("show"),2200
+  );
+ }
+ if(navigator.vibrate)navigator.vibrate(15);
+}
+
+function addXP(amount){
+ d.xp+=amount;
+
+ while(d.xp>=d.level*100){
+  d.xp-=d.level*100;
+  d.level++;
+  toast("⬆️ НОВЫЙ УРОВЕНЬ: "+d.level);
+ }
+
+ checkEndings();
+ save();
+ updateStats();
+}
+
+function updateStats(){
+ const values={
+  "u9-level":d.level,
+  "u9-coins":d.coins,
+  "u9-wins":d.wins,
+  "u9-secrets":d.secrets
+ };
+
+ Object.entries(values).forEach(([id,v])=>{
+  const e=document.getElementById(id);
+  if(e)e.textContent=v;
+ });
+
+ const c=document.getElementById("u9-col-count");
+ if(c)c.textContent=d.items.length;
+}
+
+function checkEndings(){
+ const unlocks=[];
+
+ if(d.wins>=3)unlocks.push("GOOD");
+ if(d.events>=3)unlocks.push("CORRUPTED");
+ if(d.level>=10)unlocks.push("VOID");
+ if(d.secrets>=5)unlocks.push("SECRET");
+ if(d.npcTalks>=3 && d.codes>=1)unlocks.push("UNKNOWN");
+ if(d.level>=15 && d.items.length>=8)unlocks.push("TRUE");
+
+ unlocks.forEach(x=>{
+  if(!d.endings.includes(x)){
+   d.endings.push(x);
+   toast("🏁 ОТКРЫТА КОНЦОВКА: "+x);
+  }
+ });
+}
+
+window.u9Open=function(id){
+ document.querySelectorAll(".u9-panel")
+  .forEach(x=>x.classList.remove("show"));
+
+ const e=document.getElementById(id);
+
+ if(!e){
+  toast("❌ Раздел не найден");
+  return;
+ }
+
+ e.classList.add("show");
+
+ updateStats();
+
+ if(id==="u9-collection")renderCollection();
+ if(id==="u9-leaderboard")renderLeaderboard();
+ if(id==="u9-endings")renderEndings();
+ if(id==="u9-map")renderMap();
+ if(id==="u9-code")newCode();
+};
+
+window.u9Close=function(){
+ document.querySelectorAll(".u9-panel")
+  .forEach(x=>x.classList.remove("show"));
+};
+
+function renderMap(){
+ const rooms=document.querySelectorAll("#u9-map .u9-room");
+
+ rooms.forEach(room=>{
+  const text=room.textContent;
+
+  room.classList.remove("locked");
+
+  if(text.includes("VOID") && d.level<10){
+   room.classList.add("locked");
+   room.querySelector("small").textContent=
+    "🔒 Требуется уровень 10";
+  }
+
+  if(text.includes("???") && d.secrets<5){
+   room.classList.add("locked");
+   room.querySelector("small").textContent=
+    "🔒 Требуется 5 секретов";
+  }
+
+  room.onclick=function(){
+   if(text.includes("VOID") && d.level<10){
+    toast("🔒 Нужен уровень 10");
+    return;
+   }
+
+   if(text.includes("???") && d.secrets<5){
+    toast("🔒 Нужно найти 5 секретов");
+    return;
+   }
+
+   d.coins+=10;
+   addXP(20);
+   toast("🚪 Комната исследована • +10 🪙");
+   save();
+   updateStats();
+  };
+ });
+}
+
+window.u9Talk=function(n){
+ const e=document.getElementById("u9-dialog");
+ if(!e)return;
+
+ const messages=[
+  "UNKNOWN AI: Серверная активна. Ты можешь продолжать.",
+  "UNKNOWN AI: VOID открывается на десятом уровне.",
+  "UNKNOWN AI: Код находится ближе, чем кажется."
+ ];
+
+ e.textContent=messages[(n-1)%messages.length];
+
+ d.npcTalks++;
+
+ if(n===2 && !d.items.includes("VOID CLUE")){
+  d.items.push("VOID CLUE");
+  d.secrets++;
+  toast("👁️ Получена подсказка VOID");
+ }
+
+ addXP(15);
+ save();
+ updateStats();
+};
+
+window.u9Arcade=function(type){
+ if(type==="reaction"){
+  let panel=document.getElementById("u9-arcade");
+
+  if(!document.getElementById("u9-reaction-box")){
+   const box=document.createElement("div");
+   box.id="u9-reaction-box";
+   box.className="u9-card";
+   box.innerHTML=
+    '<b>⚡ REACTION TEST</b>'+
+    '<p id="u9-reaction-status">Нажми START и жди сигнала.</p>'+
+    '<button class="u9-btn" id="u9-reaction-start">START</button>';
+
+   panel.querySelector(".u9-box").insertBefore(
+    box,panel.querySelector(".u9-close")
+   );
+
+   document.getElementById("u9-reaction-start").onclick=function(){
+    const status=document.getElementById("u9-reaction-status");
+    const btn=this;
+
+    btn.disabled=true;
+    status.textContent="🟡 ЖДИ...";
+
+    const delay=1200+Math.random()*2500;
+
+    setTimeout(()=>{
+     const start=performance.now();
+
+     status.textContent="🟢 ЖМИ!";
+     btn.disabled=false;
+
+     btn.onclick=function(){
+      const ms=Math.round(performance.now()-start);
+      const reward=Math.max(10,Math.min(60,70-Math.floor(ms/25)));
+
+      d.coins+=reward;
+      d.wins++;
+      d.arcadeScore+=reward;
+
+      addXP(30);
+      save();
+      updateStats();
+
+      status.textContent="Результат: "+ms+" ms";
+      toast("⚡ +"+reward+" 🪙");
+
+      btn.onclick=function(){
+       document.getElementById("u9-reaction-start").click();
+      };
+     };
+    },delay);
+   };
+  }
+
+  toast("⚡ REACTION готов");
+  return;
+ }
+
+ if(type==="guess"){
+  const answer=Math.floor(Math.random()*10)+1;
+  const guess=Number(prompt("🎯 Угадай число от 1 до 10"));
+
+  if(guess===answer){
+   d.coins+=40;
+   d.wins++;
+   addXP(40);
+   toast("🎯 ПОПАДАНИЕ • +40 🪙");
+  }else{
+   toast("❌ Было число: "+answer);
+  }
+
+  save();
+  updateStats();
+  return;
+ }
+
+ if(type==="symbol"){
+  const symbols=["◆","◇","○","△"];
+  const target=symbols[Math.floor(Math.random()*symbols.length)];
+
+  const answer=prompt(
+   "🔍 Найди символ:
+"+
+   symbols.join("  ")+
+   "
+
+Введи найденный символ."
+  );
+
+  if(answer===target){
+   d.coins+=30;
+   d.wins++;
+   addXP(35);
+   toast("🔍 НАЙДЕНО • +30 🪙");
+  }else{
+   toast("❌ Неверно. Искомый: "+target);
+  }
+
+  save();
+  updateStats();
+ }
+};
+
+const items=[
+ ["🐱","UNKNOWN CAT"],
+ ["🛰️","SIGNAL"],
+ ["💿","DATA DISC"],
+ ["🔑","VOID KEY"],
+ ["👁️","WATCHER"],
+ ["💎","UNKNOWN CORE"],
+ ["📼","OLD TAPE"],
+ ["🧪","LAB SAMPLE"],
+ ["🖥️","BROKEN CHIP"],
+ ["📡","RED SIGNAL"],
+ ["🕳️","VOID FRAGMENT"],
+ ["❓","UNKNOWN"]
+];
+
+window.u9FindItem=function(){
+ const available=items.filter(x=>!d.items.includes(x[1]));
+
+ if(!available.length){
+  toast("🏆 КОЛЛЕКЦИЯ СОБРАНА");
+  return;
+ }
+
+ const item=available[
+  Math.floor(Math.random()*available.length)
+ ];
+
+ d.items.push(item[1]);
+ d.secrets++;
+ d.coins+=15;
+
+ addXP(25);
+ save();
+
+ renderCollection();
+ updateStats();
+
+ toast("🎁 "+item[0]+" "+item[1]);
+};
+
+function renderCollection(){
+ const box=document.getElementById("u9-collection-list");
+ if(!box)return;
+
+ box.innerHTML=items.map(x=>{
+  const found=d.items.includes(x[1]);
+
+  return '<div class="u9-item" style="opacity:'+
+   (found?"1":".3")+'">'+
+   '<span>'+(found?x[0]:"?")+
+   '</span>'+(found?x[1]:"UNKNOWN")+
+   '</div>';
+ }).join("");
+}
+
+let secretCode="";
+
+function newCode(){
+ secretCode=String(Math.floor(100+Math.random()*900));
+
+ const e=document.getElementById("u9-code-display");
+ if(e)e.textContent="???";
+
+ const hint=document.getElementById("u9-code-hint");
+
+ if(!hint){
+  const box=document.querySelector("#u9-code .u9-box");
+  const p=document.createElement("p");
+
+  p.id="u9-code-hint";
+  p.style.opacity=".7";
+  p.textContent="Подсказка появится после исследования NPC.";
+
+  box.insertBefore(
+   p,
+   document.getElementById("u9-code-input")
+  );
+ }
+}
+
+window.u9CheckCode=function(){
+ const input=document.getElementById("u9-code-input");
+ if(!input)return;
+
+ if(input.value===secretCode){
+  d.codes++;
+  d.secrets++;
+  d.coins+=100;
+
+  addXP(100);
+
+  toast("🔓 CODE ACCEPTED • +100 🪙");
+
+  input.value="";
+  newCode();
+  save();
+  updateStats();
+ }else{
+  toast("❌ ACCESS DENIED");
+  input.value="";
+ }
+};
+
+window.u9Event=function(type){
+ const text=document.getElementById("u9-event-text");
+
+ d.events++;
+
+ if(type==="research"){
+  d.coins+=30;
+  d.secrets++;
+  addXP(45);
+
+  if(text)
+   text.textContent=
+    "Сигнал исследован. Он оставил координаты неизвестной зоны.";
+
+  toast("📡 СИГНАЛ ИССЛЕДОВАН • +30 🪙");
+ }else{
+  addXP(5);
+
+  if(text)
+   text.textContent=
+    "Ты проигнорировал сигнал. Но система его запомнила.";
+
+  toast("📡 Сигнал исчез");
+ }
+
+ checkEndings();
+ save();
+ updateStats();
+};
+
+function renderLeaderboard(){
+ const box=document.getElementById("u9-leader-list");
+ if(!box)return;
+
+ const yours=
+  d.xp+
+  d.level*100+
+  d.coins+
+  d.wins*50+
+  d.secrets*100;
+
+ const list=[
+  ["UNKNOWN",9800],
+  ["VOID",7650],
+  ["GHOST",6410],
+  ["MATRIX",5320],
+  ["WATCHER",4200],
+  ["YOU",yours]
+ ];
+
+ list.sort((a,b)=>b[1]-a[1]);
+
+ box.innerHTML=list.map((x,i)=>{
+  const medal=["🥇","🥈","🥉"][i]||"#"+(i+1);
+
+  return '<div class="u9-leader">'+
+   '<b>'+medal+'</b>'+
+   '<span>'+x[0]+'</span>'+
+   '<strong>'+x[1]+'</strong>'+
+   '</div>';
+ }).join("");
+}
+
+window.u9Leaderboard=renderLeaderboard;
+
+function renderEndings(){
+ const box=document.querySelector("#u9-endings .u9-card");
+ if(!box)return;
+
+ const endings=[
+  ["🟢 GOOD","GOOD","3 победы"],
+  ["🔴 CORRUPTED","CORRUPTED","3 события"],
+  ["🟣 VOID","VOID","Уровень 10"],
+  ["🟡 SECRET","SECRET","5 секретов"],
+  ["⚫ UNKNOWN","UNKNOWN","3 диалога + код"],
+  ["👁️ TRUE","TRUE","Уровень 15 + 8 предметов"]
+ ];
+
+ box.innerHTML=endings.map(x=>{
+  const unlocked=d.endings.includes(x[1]);
+
+  return '<div class="u9-stat">'+
+   '<span>'+x[0]+'</span>'+
+   '<b>'+(unlocked?"🔓":"🔒")+
+   '</b></div>';
+ }).join("");
+}
+
+function refreshWorld(){
+ updateStats();
+ checkEndings();
+
+ const open=document.querySelector(".u9-panel.show");
+
+ if(open){
+  if(open.id==="u9-leaderboard")renderLeaderboard();
+  if(open.id==="u9-collection")renderCollection();
+  if(open.id==="u9-endings")renderEndings();
+  if(open.id==="u9-map")renderMap();
+ }
+}
+
+save();
+refreshWorld();
+
+/* Рейтинг и прогресс обновляются каждые 2 минуты */
+setInterval(refreshWorld,120000);
+
+})();
+</script>
+
 </body>
 </html>
